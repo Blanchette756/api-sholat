@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:laporan-sholat.vercel.app)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git checkout *)",
+      "Bash(git rm *)",
+      "Bash(git branch *)",
+      "Bash(pip show *)",
+      "Bash(python *)",
+      "Bash(curl -s https://laporan-sholat.vercel.app/index.html)"
+    ]
+  }
+}

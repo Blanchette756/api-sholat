@@ -1066,7 +1066,7 @@
         </div>
 
         <!-- ══ FORM ══ -->
-        <form id="sholatForm" style="display:contents" onsubmit="handleSubmit(event)">
+        <div id="sholatForm" style="display:contents">
 
             <div class="form-card">
                 <p class="section-label">Identitas Agen</p>
@@ -1083,7 +1083,7 @@
             <div class="prayer-list">
                 <p class="section-label">Misi Sholat Hari Ini</p>
 
-                <label class="prayer-item" id="item-subuh" onclick="toggleItem('subuh')">
+                <div class="prayer-item" id="item-subuh" onclick="toggleItem('subuh')">
                     <input type="checkbox" id="subuh">
                     <div class="prayer-icon">🌙</div>
                     <div class="prayer-info">
@@ -1095,9 +1095,9 @@
                             <polyline points="1,5 4.5,8.5 11,1" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </div>
-                </label>
+                </div>
 
-                <label class="prayer-item" id="item-dzuhur" onclick="toggleItem('dzuhur')">
+                <div class="prayer-item" id="item-dzuhur" onclick="toggleItem('dzuhur')">
                     <input type="checkbox" id="dzuhur">
                     <div class="prayer-icon">☀️</div>
                     <div class="prayer-info">
@@ -1109,9 +1109,9 @@
                             <polyline points="1,5 4.5,8.5 11,1" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </div>
-                </label>
+                </div>
 
-                <label class="prayer-item" id="item-ashar" onclick="toggleItem('ashar')">
+                <div class="prayer-item" id="item-ashar" onclick="toggleItem('ashar')">
                     <input type="checkbox" id="ashar">
                     <div class="prayer-icon">🌤️</div>
                     <div class="prayer-info">
@@ -1123,9 +1123,9 @@
                             <polyline points="1,5 4.5,8.5 11,1" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </div>
-                </label>
+                </div>
 
-                <label class="prayer-item" id="item-maghrib" onclick="toggleItem('maghrib')">
+                <div class="prayer-item" id="item-maghrib" onclick="toggleItem('maghrib')">
                     <input type="checkbox" id="maghrib">
                     <div class="prayer-icon">🌇</div>
                     <div class="prayer-info">
@@ -1137,9 +1137,9 @@
                             <polyline points="1,5 4.5,8.5 11,1" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </div>
-                </label>
+                </div>
 
-                <label class="prayer-item" id="item-isya" onclick="toggleItem('isya')">
+                <div class="prayer-item" id="item-isya" onclick="toggleItem('isya')">
                     <input type="checkbox" id="isya">
                     <div class="prayer-icon">🌃</div>
                     <div class="prayer-info">
@@ -1151,11 +1151,11 @@
                             <polyline points="1,5 4.5,8.5 11,1" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </div>
-                </label>
+                </div>
 
                 <div class="list-divider"></div>
 
-                <button type="submit" class="btn-submit" id="btn-submit">
+                <button type="button" class="btn-submit" id="btn-submit" onclick="handleSubmit(event)">
                     <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -1167,7 +1167,7 @@
                 <div id="pesan-server" class="hidden"></div>
             </div>
 
-        </form>
+        </div>
 
     </div>
 
@@ -1528,6 +1528,7 @@
                     resetBtn();
                 })
                 .catch(() => {
+                    console.error("Ini error aslinya bro:", err);
                     showMsg('❌ Koneksi gagal ke Server Awan! Cek koneksi internetmu.', 'error');
                     resetBtn();
                 });
@@ -1539,7 +1540,7 @@
         }
 
         // Close modal when clicking outside
-        document.getElementById('confirm-modal').addEventListener('click', function(e) {
+        document.getElementById('confirm-modal').addEventListener('click', function (e) {
             if (e.target === this) closeModal();
         });
 
