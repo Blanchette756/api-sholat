@@ -1,21 +1,43 @@
-from flask import Flask, request, jsonify, send_from_directory, abort
-from database import Database
+import os
+import json
 from datetime import date
+
+from flask import Flask, request, jsonify, send_from_directory, abort
 from flask_cors import CORS
 from dotenv import load_dotenv
-import os
+
+import firebase_admin
+from firebase_admin import credentials, auth as firebase_auth
+
+from database import Database
 
 load_dotenv()
+
+cred_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
+if cred_json:
+    cred = credentials.Certificate(json.loads(cred_json))
+    firebase_admin.initialize_app(cred)
 
 app = Flask(__name__)
 CORS(app, origins=os.environ.get('CORS_ORIGINS', '*').split(','))
 db_manager = Database()
 
-ALLOWED_STATIC = {'index.html', 'style.css', 'script.js'}
+ALLOWED_STATIC = {'index.html', 'login.html', 'style.css', 'script.js'}
+
+def verify_token():
+    auth_header = request.headers.get('Authorization', '')
+    if not auth_header.startswith('Bearer '):
+        return None
+    token = auth_header[7:]
+    try:
+        decoded = firebase_auth.verify_id_token(token)
+        return decoded
+    except Exception:
+        return None
 
 @app.route('/')
 def index():
-    return send_from_directory('.', 'index.html')
+    return send_from_directory('.', 'login.html')
 
 @app.route('/<path:path>')
 def static_files(path):
@@ -26,6 +48,10 @@ def static_files(path):
 @app.route('/sholat', methods=['POST'])
 def terima():
     try:
+        user = verify_token()
+        if not user:
+            return jsonify({"status": "error", "message": "Silakan login terlebih dahulu"}), 401
+
         data = request.get_json(silent=True)
         if not data or not isinstance(data, dict):
             return jsonify({"status": "error", "message": "Data JSON tidak valid"}), 400
@@ -40,12 +66,15 @@ def terima():
         maghrib = bool(data.get('maghrib', False))
         isya = bool(data.get('isya', False))
 
-        success, message = db_manager.sholat(name, date.today(), subuh, dzuhur, ashar, maghrib, isya)
+        uid = user.get('uid', '')
+        email = user.get('email', '')
+
+        success, message = db_manager.sholat(name, date.today(), subuh, dzuhur, ashar, maghrib, isya, uid, email)
         if success:
             return jsonify({"status": "success", "message": message}), 201
         else:
             return jsonify({"status": "error", "message": message}), 400
-    except Exception as e:
+    except Exception:
         return jsonify({"status": "error", "message": "Terjadi kesalahan server"}), 500
 
 if __name__ == '__main__':

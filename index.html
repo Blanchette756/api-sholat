@@ -9,6 +9,55 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLXut5CS5VfaKXCvERMq0Y04RcyurQarc",
+            authDomain: "login-sholat.firebaseapp.com",
+            projectId: "login-sholat",
+            storageBucket: "login-sholat.firebasestorage.app",
+            messagingSenderId: "834035877874",
+            appId: "1:834035877874:web:bb2a0ecf3621ba546b8d6b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        window._firebaseAuth = auth;
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+                return;
+            }
+            document.body.style.visibility = 'visible';
+            const namaInput = document.getElementById('nama');
+            if (namaInput && !namaInput.value && user.displayName) {
+                namaInput.value = user.displayName;
+            }
+            const userPill = document.getElementById('user-pill');
+            if (userPill) {
+                userPill.textContent = '👤 ' + (user.displayName || user.email);
+            }
+        });
+
+        window._firebaseSignOut = () => {
+            signOut(auth).then(() => {
+                localStorage.removeItem('sholatChecklist');
+                localStorage.removeItem('sholatNama');
+                window.location.href = "login.html";
+            });
+        };
+
+        window._getIdToken = async () => {
+            const user = auth.currentUser;
+            if (!user) return null;
+            return user.getIdToken();
+        };
+    </script>
     <style>
         *,
         *::before,
@@ -796,7 +845,7 @@
     </style>
 </head>
 
-<body>
+<body style="visibility:hidden">
     <div class="wrapper">
 
         <!-- ══ HEADER ══ -->
@@ -824,6 +873,10 @@
                     <span id="next-prayer-dot"></span>
                     <span id="next-prayer-label">Memuat...</span>
                 </div>
+            </div>
+            <div class="header-meta" style="margin-top:8px">
+                <div class="meta-pill" id="user-pill">👤 ...</div>
+                <div class="meta-pill" style="cursor:pointer" onclick="window._firebaseSignOut()">🚪 Keluar</div>
             </div>
         </div>
 
@@ -1217,7 +1270,7 @@
         // ══════════════════════════════════════════════
         // FORM SUBMIT
         // ══════════════════════════════════════════════
-        function handleSubmit(e) {
+        async function handleSubmit(e) {
             e.preventDefault();
             const nama = document.getElementById('nama').value.trim();
 
@@ -1236,9 +1289,15 @@
             btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Mengirim...`;
             showMsg('⏳ Menghubungi server...', '');
 
+            let headers = { 'Content-Type': 'application/json' };
+            try {
+                const token = await window._getIdToken();
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+            } catch (e) { }
+
             fetch('/sholat', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: headers,
                 body: JSON.stringify(dataKirim)
             })
                 .then(r => r.json())

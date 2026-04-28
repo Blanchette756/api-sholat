@@ -10,11 +10,13 @@ class Database:
         self.db = self.client['db_sholat']
         self.collection = self.db['checklist_harian']
 
-    def sholat(self, nama, tanggal, subuh, dzuhur, ashar, maghrib, isya):
+    def sholat(self, nama, tanggal, subuh, dzuhur, ashar, maghrib, isya, uid='', email=''):
         if not isinstance(nama, str) or len(nama.strip()) < 3:
             return False, "Nama harus string minimal 3 karakter"
         nama = nama.strip()[:100]
         data = {
+            "uid": uid,
+            "email": email,
             "nama_siswa": nama,
             "tanggal": str(tanggal),
             "sholat": {
