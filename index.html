@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist Sholat Harian</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #EEF0EC;
+            --surface: #FFFFFF;
+            --surface2: #F6F8F5;
+            --teal: #1B6B5A;
+            --teal-2: #24896F;
+            --teal-light: #DCF0EA;
+            --teal-mid: #4BA88F;
+            --gold: #A07830;
+            --gold-2: #C49A3C;
+            --gold-light: #F9F2E2;
+            --text: #1A2420;
+            --text2: #4A6359;
+            --text3: #8FAA9E;
+            --border: rgba(27, 107, 90, 0.12);
+            --border-2: rgba(27, 107, 90, 0.20);
+            --shadow: 0 2px 12px rgba(27, 107, 90, 0.08);
+            --shadow-md: 0 4px 20px rgba(27, 107, 90, 0.12);
+            --shadow-lg: 0 8px 40px rgba(27, 107, 90, 0.18);
+            --r: 18px;
+            --r-sm: 12px;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 28px 16px 60px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 700px 500px at 80% 0%, rgba(75, 168, 143, 0.10) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 5% 90%, rgba(160, 120, 48, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrapper {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ──────────── HEADER CARD ──────────── */
+        .header-card {
+            background: var(--teal);
+            border-radius: 26px;
+            padding: 30px 26px 26px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 85% 80%, rgba(160, 120, 48, 0.18) 0%, transparent 45%);
+        }
+
+        .geo-deco {
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 180px;
+            height: 180px;
+            opacity: 0.06;
+        }
+
+        .geo-deco2 {
+            position: absolute;
+            bottom: -40px;
+            left: -20px;
+            width: 140px;
+            height: 140px;
+            opacity: 0.05;
+        }
+
+        .header-icon {
+            font-size: 38px;
+            display: block;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.25));
+            animation: floatIcon 3s ease-in-out infinite;
+        }
+
+        @keyframes floatIcon {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .header-card h1 {
+            font-family: 'Noto Serif', serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.3px;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 5px;
+        }
+
+        .header-card p {
+            font-size: 12.5px;
+            color: rgba(255, 255, 255, 0.68);
+            position: relative;
+            z-index: 1;
+            line-height: 1.6;
+            max-width: 280px;
+            margin: 0 auto 16px;
+        }
+
+        .header-meta {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .meta-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.13);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 20px;
+            padding: 5px 13px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.88);
+        }
+
+        /* ──────────── NEXT PRAYER PILL (in header) ──────────── */
+        .next-prayer-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(160, 120, 48, 0.28);
+            border: 1px solid rgba(196, 154, 60, 0.40);
+            border-radius: 20px;
+            padding: 5px 13px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #f5d98a;
+            animation: pillPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pillPulse {
+
+            0%,
+            100% {
+                background: rgba(160, 120, 48, 0.28);
+            }
+
+            50% {
+                background: rgba(160, 120, 48, 0.40);
+            }
+        }
+
+        #next-prayer-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #f5d98a;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* ──────────── JADWAL SHOLAT CARD ──────────── */
+        .prayer-schedule-card {
+            background: var(--surface);
+            border-radius: var(--r);
+            padding: 20px 20px 16px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            animation: fadeUp 0.45s ease both;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        .location-tag {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--teal-2);
+            background: var(--teal-light);
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .sched-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            padding: 10px 4px;
+            border-radius: var(--r-sm);
+            border: 1.5px solid var(--border);
+            background: var(--surface2);
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .sched-item.active {
+            border-color: var(--teal-2);
+            background: var(--teal-light);
+            box-shadow: 0 0 0 3px rgba(36, 137, 111, 0.12);
+        }
+
+        .sched-item.passed {
+            opacity: 0.45;
+        }
+
+        .sched-icon {
+            font-size: 16px;
+        }
+
+        .sched-name {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sched-item.active .sched-name {
+            color: var(--teal);
+        }
+
+        .sched-time {
+            font-size: 12.5px;
+            font-weight: 800;
+            color: var(--text);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .sched-item.active .sched-time {
+            color: var(--teal-2);
+        }
+
+        .sched-badge {
+            position: absolute;
+            top: -7px;
+            background: var(--teal-2);
+            color: #fff;
+            font-size: 9px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 10px;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        /* Countdown */
+        .countdown-bar {
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: linear-gradient(135deg, var(--teal-light), #EAF6F1);
+            border-radius: var(--r-sm);
+            border: 1px solid rgba(36, 137, 111, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .countdown-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text2);
+        }
+
+        .countdown-label strong {
+            color: var(--teal);
+            font-weight: 800;
+        }
+
+        .countdown-time {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--teal);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.5px;
+        }
+
+        .sched-loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--text3);
+            font-size: 13px;
+        }
+
+        /* ──────────── PROGRESS CARD ──────────── */
+        .progress-card {
+            background: var(--surface);
+            border-radius: var(--r);
+            padding: 18px 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            animation: fadeUp 0.5s ease both;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .progress-label {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .progress-count {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--teal);
+            line-height: 1;
+        }
+
+        .progress-count span {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text3);
+        }
+
+        .track {
+            width: 100%;
+            height: 8px;
+            background: var(--teal-light);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--teal) 0%, var(--teal-mid) 100%);
+            border-radius: 99px;
+            transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+
+        .fill::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 99px;
+            animation: shimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+
+            0%,
+            100% {
+                opacity: 0.5
+            }
+
+            50% {
+                opacity: 1
+            }
+        }
+
+        /* ──────────── FORM CARD ──────────── */
+        .form-card {
+            background: var(--surface);
+            border-radius: var(--r);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            animation: fadeUp 0.55s ease both;
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap svg {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text3);
+            pointer-events: none;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 13px 14px 13px 40px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-sm);
+            background: var(--surface2);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        input[type="text"]::placeholder {
+            color: var(--text3);
+            font-weight: 400;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--teal);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(27, 107, 90, 0.10);
+        }
+
+        /* ──────────── PRAYER LIST ──────────── */
+        .prayer-list {
+            background: var(--surface);
+            border-radius: var(--r);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            animation: fadeUp 0.6s ease both;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+
+        .prayer-item {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 13px 15px;
+            border-radius: var(--r-sm);
+            border: 1.5px solid var(--border);
+            background: var(--surface2);
+            cursor: pointer;
+            transition: all 0.22s ease;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .prayer-item::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--teal);
+            border-radius: 0 3px 3px 0;
+            opacity: 0;
+            transition: opacity 0.22s;
+        }
+
+        .prayer-item:hover {
+            border-color: var(--teal-mid);
+            background: var(--teal-light);
+            transform: translateX(2px);
+        }
+
+        .prayer-item.checked {
+            border-color: var(--teal);
+            background: var(--teal-light);
+        }
+
+        .prayer-item.checked::after {
+            opacity: 1;
+        }
+
+        .prayer-item.pulse-anim {
+            animation: itemPulse 0.28s ease;
+        }
+
+        @keyframes itemPulse {
+            0% {
+                transform: scale(1);
+            }
+
+            40% {
+                transform: scale(0.975);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .prayer-item input {
+            display: none;
+        }
+
+        .prayer-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            flex-shrink: 0;
+            background: rgba(27, 107, 90, 0.07);
+            transition: all 0.22s ease;
+        }
+
+        .prayer-item.checked .prayer-icon {
+            background: var(--teal);
+        }
+
+        .prayer-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .prayer-name {
+            font-size: 14.5px;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .prayer-time-text {
+            font-size: 12px;
+            color: var(--text3);
+            font-weight: 600;
+            margin-top: 1px;
+            transition: color 0.22s;
+        }
+
+        .prayer-item.checked .prayer-name {
+            color: var(--teal);
+        }
+
+        .prayer-item.checked .prayer-time-text {
+            color: var(--teal-mid);
+        }
+
+        .checkmark-box {
+            width: 24px;
+            height: 24px;
+            border-radius: 7px;
+            border: 2px solid rgba(27, 107, 90, 0.22);
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.22s ease;
+        }
+
+        .prayer-item.checked .checkmark-box {
+            background: var(--teal);
+            border-color: var(--teal);
+        }
+
+        .checkmark-box svg {
+            width: 13px;
+            height: 13px;
+            stroke: #fff;
+            stroke-width: 3;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.18s ease;
+        }
+
+        .prayer-item.checked .checkmark-box svg {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* ──────────── SUBMIT BUTTON ──────────── */
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background: var(--teal);
+            color: #fff;
+            border: none;
+            border-radius: var(--r-sm);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14.5px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 16px rgba(27, 107, 90, 0.28);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-submit::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.10) 0%, transparent 100%);
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            background: #145045;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(27, 107, 90, 0.38);
+        }
+
+        .btn-submit:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* ──────────── MESSAGE ──────────── */
+        #pesan-server {
+            padding: 13px 16px;
+            border-radius: var(--r-sm);
+            font-size: 13.5px;
+            font-weight: 700;
+            text-align: center;
+            animation: fadeUp 0.3s ease;
+            border: 1.5px solid var(--border);
+            background: var(--surface2);
+            color: var(--text2);
+            line-height: 1.5;
+        }
+
+        #pesan-server.error {
+            background: #FFF0F0;
+            border-color: #F5AAAA;
+            color: #A03030;
+        }
+
+        #pesan-server.success {
+            background: var(--teal-light);
+            border-color: var(--teal);
+            color: var(--teal);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ──────────── DIVIDER ──────────── */
+        .list-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 2px 0;
+        }
+
+        /* ──────────── ANIMATIONS ──────────── */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* stagger */
+        .progress-card {
+            animation-delay: 0.05s;
+        }
+
+        .prayer-schedule-card {
+            animation-delay: 0.10s;
+        }
+
+        .form-card {
+            animation-delay: 0.15s;
+        }
+
+        .prayer-list {
+            animation-delay: 0.20s;
+        }
+
+        /* ──────────── RESPONSIVE ──────────── */
+        @media (max-width: 480px) {
+            body {
+                padding: 16px 12px 48px;
+            }
+
+            .header-card {
+                padding: 24px 18px 20px;
+            }
+
+            .header-card h1 {
+                font-size: 24px;
+            }
+
+            .schedule-grid {
+                gap: 6px;
+            }
+
+            .sched-item {
+                padding: 8px 2px;
+            }
+
+            .sched-time {
+                font-size: 11.5px;
+            }
+
+            .sched-name {
+                font-size: 9px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+
+        <!-- ══ HEADER ══ -->
+        <div class="header-card">
+            <svg class="geo-deco" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="100,10 120,60 175,60 130,90 148,140 100,110 52,140 70,90 25,60 80,60" fill="white" />
+                <polygon points="100,35 113,68 148,68 121,87 131,120 100,100 69,120 79,87 52,68 87,68" fill="white" />
+            </svg>
+            <svg class="geo-deco2" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="60" cy="60" r="55" stroke="white" stroke-width="2" fill="none" />
+                <circle cx="60" cy="60" r="40" stroke="white" stroke-width="1.5" fill="none" />
+                <circle cx="60" cy="60" r="25" stroke="white" stroke-width="1" fill="none" />
+            </svg>
+
+            <span class="header-icon">🕌</span>
+            <h1>Checklist Sholat</h1>
+            <p>Pastikan tidak ada satu pun sholatmu yang terlewat hari ini</p>
+
+            <div class="header-meta">
+                <div class="meta-pill">
+                    <span>📅</span>
+                    <span id="tanggal-hari"></span>
+                </div>
+                <div class="next-prayer-pill" id="next-prayer-pill">
+                    <span id="next-prayer-dot"></span>
+                    <span id="next-prayer-label">Memuat...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ JADWAL SHOLAT ══ -->
+        <div class="prayer-schedule-card">
+            <div class="card-header">
+                <span class="card-title">Jadwal Sholat Hari Ini</span>
+                <span class="location-tag">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    Tarakan, Kaltara
+                </span>
+            </div>
+            <div id="schedule-content">
+                <div class="sched-loading">⏳ Memuat jadwal sholat...</div>
+            </div>
+        </div>
+
+        <!-- ══ PROGRESS ══ -->
+        <div class="progress-card">
+            <div class="progress-header">
+                <span class="progress-label">Progress Harian</span>
+                <span class="progress-count"><span id="count-num">0</span><span>/5 sholat</span></span>
+            </div>
+            <div class="track">
+                <div class="fill" id="progress-fill" style="width:0%"></div>
+            </div>
+        </div>
+
+        <!-- ══ FORM ══ -->
+        <form id="sholatForm" style="display:contents" onsubmit="handleSubmit(event)">
+
+            <div class="form-card">
+                <p class="section-label">Identitas Agen</p>
+                <div class="input-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    <input type="text" id="nama" placeholder="Masukkan namamu..." autocomplete="off">
+                </div>
+            </div>
+
+            <div class="prayer-list">
+                <p class="section-label">Misi Sholat Hari Ini</p>
+
+                <label class="prayer-item" id="item-subuh" onclick="toggleItem('subuh')">
+                    <input type="checkbox" id="subuh">
+                    <div class="prayer-icon">🌙</div>
+                    <div class="prayer-info">
+                        <div class="prayer-name">Subuh</div>
+                        <div class="prayer-time-text" id="pt-subuh">—</div>
+                    </div>
+                    <div class="checkmark-box">
+                        <svg viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <polyline points="1,5 4.5,8.5 11,1" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                </label>
+
+                <label class="prayer-item" id="item-dzuhur" onclick="toggleItem('dzuhur')">
+                    <input type="checkbox" id="dzuhur">
+                    <div class="prayer-icon">☀️</div>
+                    <div class="prayer-info">
+                        <div class="prayer-name">Dzuhur</div>
+                        <div class="prayer-time-text" id="pt-dzuhur">—</div>
+                    </div>
+                    <div class="checkmark-box">
+                        <svg viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <polyline points="1,5 4.5,8.5 11,1" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                </label>
+
+                <label class="prayer-item" id="item-ashar" onclick="toggleItem('ashar')">
+                    <input type="checkbox" id="ashar">
+                    <div class="prayer-icon">🌤️</div>
+                    <div class="prayer-info">
+                        <div class="prayer-name">Ashar</div>
+                        <div class="prayer-time-text" id="pt-ashar">—</div>
+                    </div>
+                    <div class="checkmark-box">
+                        <svg viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <polyline points="1,5 4.5,8.5 11,1" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                </label>
+
+                <label class="prayer-item" id="item-maghrib" onclick="toggleItem('maghrib')">
+                    <input type="checkbox" id="maghrib">
+                    <div class="prayer-icon">🌇</div>
+                    <div class="prayer-info">
+                        <div class="prayer-name">Maghrib</div>
+                        <div class="prayer-time-text" id="pt-maghrib">—</div>
+                    </div>
+                    <div class="checkmark-box">
+                        <svg viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <polyline points="1,5 4.5,8.5 11,1" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                </label>
+
+                <label class="prayer-item" id="item-isya" onclick="toggleItem('isya')">
+                    <input type="checkbox" id="isya">
+                    <div class="prayer-icon">🌃</div>
+                    <div class="prayer-info">
+                        <div class="prayer-name">Isya</div>
+                        <div class="prayer-time-text" id="pt-isya">—</div>
+                    </div>
+                    <div class="checkmark-box">
+                        <svg viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <polyline points="1,5 4.5,8.5 11,1" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </div>
+                </label>
+
+                <div class="list-divider"></div>
+
+                <button type="submit" class="btn-submit" id="btn-submit">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                    Kirim Laporan
+                </button>
+
+                <div id="pesan-server" class="hidden"></div>
+            </div>
+
+        </form>
+
+    </div>
+
+    <script>
+        // ══════════════════════════════════════════════
+        // CONSTANTS
+        // ══════════════════════════════════════════════
+        const prayers = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
+        const PRAYER_ICONS = { subuh: '🌙', dzuhur: '☀️', ashar: '🌤️', maghrib: '🌇', isya: '🌃' };
+        const PRAYER_LABELS = { subuh: 'Subuh', dzuhur: 'Dzuhur', ashar: 'Ashar', maghrib: 'Maghrib', isya: 'Isya' };
+
+        // Tarakan, Kaltara (WITA = UTC+8)
+        const LAT = 3.3011;
+        const LON = 117.5765;
+
+        let prayerTimes = null; // { subuh: "04:32", dzuhur: "12:08", ... }
+        let countdownInterval = null;
+
+        // ══════════════════════════════════════════════
+        // DATE BADGE
+        // ══════════════════════════════════════════════
+        (function () {
+            const d = new Date();
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+            document.getElementById('tanggal-hari').textContent =
+                days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+        })();
+
+        // ══════════════════════════════════════════════
+        // FETCH PRAYER TIMES (Aladhan API)
+        // ══════════════════════════════════════════════
+        async function fetchPrayerTimes() {
+            try {
+                const today = new Date();
+                const dd = String(today.getDate()).padStart(2, '0');
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const yyyy = today.getFullYear();
+                const dateStr = `${dd}-${mm}-${yyyy}`;
+
+                const url = `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${LAT}&longitude=${LON}&method=11&tune=0,2,2,2,2,2,2,2,2`;
+                const res = await fetch(url);
+                const json = await res.json();
+
+                if (json.code === 200) {
+                    const t = json.data.timings;
+                    prayerTimes = {
+                        subuh: formatTime(t.Fajr),
+                        dzuhur: formatTime(t.Dhuhr),
+                        ashar: formatTime(t.Asr),
+                        maghrib: formatTime(t.Maghrib),
+                        isya: formatTime(t.Isha)
+                    };
+                    renderSchedule();
+                    updatePrayerTimeTexts();
+                    startCountdown();
+                }
+            } catch (e) {
+                // Fallback to approximate times for Tarakan WITA
+                prayerTimes = {
+                    subuh: '04:28',
+                    dzuhur: '12:06',
+                    ashar: '15:18',
+                    maghrib: '18:13',
+                    isya: '19:22'
+                };
+                renderSchedule();
+                updatePrayerTimeTexts();
+                startCountdown();
+            }
+        }
+
+        function formatTime(t) {
+            // API returns "HH:MM" but might include timezone offset like "04:28 (+08)"
+            return t.substring(0, 5);
+        }
+
+        // ══════════════════════════════════════════════
+        // RENDER SCHEDULE GRID
+        // ══════════════════════════════════════════════
+        function renderSchedule() {
+            const now = getCurrentWITA();
+            const nowMins = now.getHours() * 60 + now.getMinutes();
+
+            // Find next & previous prayer
+            const timeMins = {};
+            prayers.forEach(p => {
+                const [h, m] = prayerTimes[p].split(':').map(Number);
+                timeMins[p] = h * 60 + m;
+            });
+
+            let nextPrayer = null;
+            let passed = [];
+            for (let i = 0; i < prayers.length; i++) {
+                if (timeMins[prayers[i]] > nowMins) {
+                    nextPrayer = prayers[i];
+                    passed = prayers.slice(0, i);
+                    break;
+                }
+            }
+            if (!nextPrayer) {
+                // All prayers passed, next is tomorrow's Subuh
+                passed = [...prayers];
+            }
+
+            let html = '<div class="schedule-grid">';
+            prayers.forEach(p => {
+                const isNext = p === nextPrayer;
+                const isPassed = passed.includes(p);
+                let cls = 'sched-item';
+                if (isNext) cls += ' active';
+                if (isPassed) cls += ' passed';
+
+                html += `<div class="${cls}">
+            ${isNext ? '<span class="sched-badge">Selanjutnya</span>' : ''}
+            <span class="sched-icon">${PRAYER_ICONS[p]}</span>
+            <span class="sched-name">${PRAYER_LABELS[p]}</span>
+            <span class="sched-time">${prayerTimes[p]}</span>
+        </div>`;
+            });
+            html += '</div>';
+
+            // Countdown bar
+            if (nextPrayer) {
+                html += `<div class="countdown-bar" id="countdown-bar">
+            <span class="countdown-label">Menuju <strong>${PRAYER_LABELS[nextPrayer]}</strong></span>
+            <span class="countdown-time" id="countdown-time">--:--:--</span>
+        </div>`;
+            } else {
+                html += `<div class="countdown-bar"><span class="countdown-label">Semua sholat hari ini selesai 🌟</span></div>`;
+            }
+
+            document.getElementById('schedule-content').innerHTML = html;
+
+            // Update next prayer pill in header
+            if (nextPrayer) {
+                document.getElementById('next-prayer-label').textContent =
+                    `${PRAYER_LABELS[nextPrayer]} ${prayerTimes[nextPrayer]}`;
+            } else {
+                document.getElementById('next-prayer-label').textContent = 'Alhamdulillah ✓';
+                document.getElementById('next-prayer-dot').style.background = '#90ee90';
+            }
+        }
+
+        // ══════════════════════════════════════════════
+        // COUNTDOWN
+        // ══════════════════════════════════════════════
+        function startCountdown() {
+            if (countdownInterval) clearInterval(countdownInterval);
+            countdownInterval = setInterval(updateCountdown, 1000);
+            updateCountdown();
+        }
+
+        function updateCountdown() {
+            if (!prayerTimes) return;
+            const now = getCurrentWITA();
+            const nowMins = now.getHours() * 60 + now.getMinutes();
+            const nowSecs = nowMins * 60 + now.getSeconds();
+
+            let nextPrayer = null;
+            let nextMins = null;
+            for (let i = 0; i < prayers.length; i++) {
+                const [h, m] = prayerTimes[prayers[i]].split(':').map(Number);
+                const pm = h * 60 + m;
+                if (pm > nowMins) {
+                    nextPrayer = prayers[i];
+                    nextMins = pm;
+                    break;
+                }
+            }
+
+            const countdownEl = document.getElementById('countdown-time');
+            if (!countdownEl || !nextPrayer) return;
+
+            const nextSecs = nextMins * 60;
+            let diff = nextSecs - nowSecs;
+            if (diff < 0) diff = 0;
+
+            const h = Math.floor(diff / 3600);
+            const m = Math.floor((diff % 3600) / 60);
+            const s = diff % 60;
+            countdownEl.textContent =
+                String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+
+            // Refresh schedule grid every minute to update active/passed state
+            if (s === 0) renderSchedule();
+        }
+
+        // ══════════════════════════════════════════════
+        // HELPER: Current WITA time (UTC+8)
+        // ══════════════════════════════════════════════
+        function getCurrentWITA() {
+            const now = new Date();
+            // WITA = UTC+8
+            const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+            return new Date(utc + 8 * 3600000);
+        }
+
+        // ══════════════════════════════════════════════
+        // UPDATE PRAYER TIME TEXTS IN CHECKLIST
+        // ══════════════════════════════════════════════
+        function updatePrayerTimeTexts() {
+            if (!prayerTimes) return;
+            prayers.forEach(p => {
+                const el = document.getElementById('pt-' + p);
+                if (el) el.textContent = prayerTimes[p] + ' WITA';
+            });
+        }
+
+        // ══════════════════════════════════════════════
+        // CHECKLIST LOGIC
+        // ══════════════════════════════════════════════
+        function toggleItem(id) {
+            const cb = document.getElementById(id);
+            const item = document.getElementById('item-' + id);
+            cb.checked = !cb.checked;
+            item.classList.toggle('checked', cb.checked);
+            item.classList.add('pulse-anim');
+            setTimeout(() => item.classList.remove('pulse-anim'), 300);
+            saveChecklist();
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const checked = prayers.filter(p => document.getElementById(p).checked).length;
+            document.getElementById('count-num').textContent = checked;
+            document.getElementById('progress-fill').style.width = (checked / 5 * 100) + '%';
+        }
+
+        function saveChecklist() {
+            const data = { _date: getCurrentWITA().toDateString() };
+            prayers.forEach(p => data[p] = document.getElementById(p).checked);
+            try { localStorage.setItem('sholatChecklist', JSON.stringify(data)); } catch (e) { }
+        }
+
+        function loadChecklist() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('sholatChecklist') || 'null');
+                const today = getCurrentWITA().toDateString();
+                if (saved && saved._date === today) {
+                    prayers.forEach(p => {
+                        if (saved[p]) {
+                            document.getElementById(p).checked = true;
+                            document.getElementById('item-' + p).classList.add('checked');
+                        }
+                    });
+                } else if (saved) {
+                    localStorage.removeItem('sholatChecklist');
+                }
+                const nama = localStorage.getItem('sholatNama') || '';
+                if (nama) document.getElementById('nama').value = nama;
+            } catch (e) { }
+            updateProgress();
+        }
+
+        // ══════════════════════════════════════════════
+        // FORM SUBMIT
+        // ══════════════════════════════════════════════
+        function handleSubmit(e) {
+            e.preventDefault();
+            const nama = document.getElementById('nama').value.trim();
+
+            if (!nama) { showMsg('❌ Nama harus diisi dulu ya!', 'error'); return; }
+            if (nama.length < 3) { showMsg('❌ Nama minimal 3 karakter!', 'error'); return; }
+
+            const status = {};
+            prayers.forEach(p => status[p] = document.getElementById(p).checked);
+            const total = Object.values(status).filter(Boolean).length;
+            const dataKirim = { nama, ...status, totalSholat: total };
+
+            try { localStorage.setItem('sholatNama', nama); } catch (e) { }
+
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Mengirim...`;
+            showMsg('⏳ Menghubungi server...', '');
+
+            fetch('/sholat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataKirim)
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success' || data.status === 'sukses') {
+                        showMsg('✅ Laporan diterima! ' + (data.message || '') + ' (' + total + '/5 sholat)', 'success');
+                        document.getElementById('sholatForm').querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+                        prayers.forEach(p => document.getElementById('item-' + p).classList.remove('checked'));
+                        try { localStorage.removeItem('sholatChecklist'); } catch (e) { }
+                        updateProgress();
+                        setTimeout(() => document.getElementById('pesan-server').classList.add('hidden'), 5000);
+                    } else {
+                        showMsg('❌ Gagal: ' + (data.message || 'Server menolak data'), 'error');
+                    }
+                    resetBtn();
+                })
+                .catch(() => {
+                    showMsg('❌ Koneksi gagal ke Server Awan! Cek koneksi internetmu.', 'error');
+                    resetBtn();
+                });
+
+            function resetBtn() {
+                btn.disabled = false;
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Kirim Laporan`;
+            }
+        }
+
+        function showMsg(text, type) {
+            const d = document.getElementById('pesan-server');
+            d.textContent = text;
+            d.className = type || '';
+            d.classList.remove('hidden');
+        }
+
+        // ══════════════════════════════════════════════
+        // INIT
+        // ══════════════════════════════════════════════
+        loadChecklist();
+        fetchPrayerTimes();
+    </script>
+</body>
+
+</html>

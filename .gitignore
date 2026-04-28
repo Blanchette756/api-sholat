@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+*.sqlite
+*.zip
+.env
+.env.*
+!.env.example
+.vercel/
+node_modules/
