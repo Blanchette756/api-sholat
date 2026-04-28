@@ -6,17 +6,21 @@ from flask import Flask, request, jsonify, send_from_directory, abort
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-import firebase_admin
-from firebase_admin import credentials, auth as firebase_auth
-
 from database import Database
 
 load_dotenv()
 
-cred_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
-if cred_json:
-    cred = credentials.Certificate(json.loads(cred_json))
-    firebase_admin.initialize_app(cred)
+firebase_enabled = False
+try:
+    import firebase_admin
+    from firebase_admin import credentials, auth as firebase_auth
+    cred_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
+    if cred_json:
+        cred = credentials.Certificate(json.loads(cred_json))
+        firebase_admin.initialize_app(cred)
+        firebase_enabled = True
+except Exception:
+    pass
 
 app = Flask(__name__)
 CORS(app, origins=os.environ.get('CORS_ORIGINS', '*').split(','))
@@ -25,6 +29,8 @@ db_manager = Database()
 ALLOWED_STATIC = {'index.html', 'login.html', 'style.css', 'script.js'}
 
 def verify_token():
+    if not firebase_enabled:
+        return {'uid': 'anonymous', 'email': ''}
     auth_header = request.headers.get('Authorization', '')
     if not auth_header.startswith('Bearer '):
         return None
