@@ -842,6 +842,162 @@
                 font-size: 9px;
             }
         }
+
+        /* ──────────── CONFIRM MODAL ──────────── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(26, 36, 32, 0.55);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-box {
+            background: var(--surface);
+            border-radius: 22px;
+            padding: 28px 24px 22px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            text-align: center;
+        }
+
+        .modal-overlay.show .modal-box {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-icon {
+            font-size: 36px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .modal-title {
+            font-family: 'Noto Serif', serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .modal-desc {
+            font-size: 13px;
+            color: var(--text2);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .modal-summary {
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-sm);
+            padding: 14px 16px;
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        .modal-summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: var(--text2);
+            font-weight: 600;
+            padding: 3px 0;
+        }
+
+        .modal-summary-row span:last-child {
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .modal-summary-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 8px 0;
+        }
+
+        .modal-summary-prayers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .modal-prayer-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .modal-prayer-tag.done {
+            background: var(--teal-light);
+            color: var(--teal);
+        }
+
+        .modal-prayer-tag.skip {
+            background: var(--surface2);
+            color: var(--text3);
+            border: 1px solid var(--border);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 13px 16px;
+            border-radius: var(--r-sm);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 13.5px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            border: none;
+        }
+
+        .modal-btn-cancel {
+            background: var(--surface2);
+            color: var(--text2);
+            border: 1.5px solid var(--border);
+        }
+
+        .modal-btn-cancel:hover {
+            background: #eee;
+        }
+
+        .modal-btn-confirm {
+            background: var(--teal);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(27, 107, 90, 0.28);
+        }
+
+        .modal-btn-confirm:hover {
+            background: #145045;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(27, 107, 90, 0.35);
+        }
     </style>
 </head>
 
@@ -1013,6 +1169,32 @@
 
         </form>
 
+    </div>
+
+    <!-- ══ CONFIRM MODAL ══ -->
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal-box">
+            <span class="modal-icon">📋</span>
+            <div class="modal-title">Kirim Laporan?</div>
+            <div class="modal-desc">Pastikan data berikut sudah benar sebelum dikirim</div>
+            <div class="modal-summary">
+                <div class="modal-summary-row">
+                    <span>Nama</span>
+                    <span id="modal-nama">—</span>
+                </div>
+                <div class="modal-summary-divider"></div>
+                <div class="modal-summary-row">
+                    <span>Total Sholat</span>
+                    <span id="modal-total">0/5</span>
+                </div>
+                <div class="modal-summary-divider"></div>
+                <div class="modal-summary-prayers" id="modal-prayers"></div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Batal</button>
+                <button class="modal-btn modal-btn-confirm" onclick="confirmSubmit()">Ya, Kirim</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1268,8 +1450,10 @@
         }
 
         // ══════════════════════════════════════════════
-        // FORM SUBMIT
+        // FORM SUBMIT (with confirm modal)
         // ══════════════════════════════════════════════
+        let pendingSubmitData = null;
+
         async function handleSubmit(e) {
             e.preventDefault();
             const nama = document.getElementById('nama').value.trim();
@@ -1280,9 +1464,38 @@
             const status = {};
             prayers.forEach(p => status[p] = document.getElementById(p).checked);
             const total = Object.values(status).filter(Boolean).length;
-            const dataKirim = { nama, ...status, totalSholat: total };
 
-            try { localStorage.setItem('sholatNama', nama); } catch (e) { }
+            pendingSubmitData = { nama, ...status, totalSholat: total };
+
+            document.getElementById('modal-nama').textContent = nama;
+            document.getElementById('modal-total').textContent = total + '/5';
+
+            let tagsHtml = '';
+            prayers.forEach(p => {
+                const checked = status[p];
+                const cls = checked ? 'done' : 'skip';
+                const icon = checked ? '✅' : '—';
+                tagsHtml += `<span class="modal-prayer-tag ${cls}">${icon} ${PRAYER_LABELS[p]}</span>`;
+            });
+            document.getElementById('modal-prayers').innerHTML = tagsHtml;
+
+            document.getElementById('confirm-modal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('confirm-modal').classList.remove('show');
+            pendingSubmitData = null;
+        }
+
+        async function confirmSubmit() {
+            closeModal();
+            if (!pendingSubmitData) return;
+
+            const dataKirim = pendingSubmitData;
+            const total = dataKirim.totalSholat;
+            pendingSubmitData = null;
+
+            try { localStorage.setItem('sholatNama', dataKirim.nama); } catch (e) { }
 
             const btn = document.getElementById('btn-submit');
             btn.disabled = true;
@@ -1324,6 +1537,11 @@
                 btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Kirim Laporan`;
             }
         }
+
+        // Close modal when clicking outside
+        document.getElementById('confirm-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
 
         function showMsg(text, type) {
             const d = document.getElementById('pesan-server');
