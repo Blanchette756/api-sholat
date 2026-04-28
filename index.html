@@ -1488,12 +1488,11 @@
         }
 
         async function confirmSubmit() {
-            closeModal();
             if (!pendingSubmitData) return;
-
             const dataKirim = pendingSubmitData;
             const total = dataKirim.totalSholat;
             pendingSubmitData = null;
+            closeModal();
 
             try { localStorage.setItem('sholatNama', dataKirim.nama); } catch (e) { }
 
@@ -1527,7 +1526,7 @@
                     }
                     resetBtn();
                 })
-                .catch(() => {
+                .catch((err) => {
                     console.error("Ini error aslinya bro:", err);
                     showMsg('❌ Koneksi gagal ke Server Awan! Cek koneksi internetmu.', 'error');
                     resetBtn();
