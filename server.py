@@ -43,6 +43,8 @@ if not JWT_SECRET:
 
 WITA = timezone(timedelta(hours=8))
 
+PRAYER_ORDER = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya']
+
 PRAYER_TIMES_APPROX = {
     'subuh': (4, 20),
     'dzuhur': (12, 0),
@@ -67,7 +69,12 @@ def is_prayer_in_window(prayer_id, tolerance_minutes=30):
     now = get_wita_now()
     start_mins = h * 60 + m
     now_mins = now.hour * 60 + now.minute
-    end_mins = start_mins + tolerance_minutes
+    idx = PRAYER_ORDER.index(prayer_id)
+    if idx < len(PRAYER_ORDER) - 1:
+        nh, nm = PRAYER_TIMES_APPROX[PRAYER_ORDER[idx + 1]]
+        end_mins = nh * 60 + nm
+    else:
+        end_mins = 23 * 60 + 59
     return start_mins <= now_mins < end_mins
 
 

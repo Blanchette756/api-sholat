@@ -1545,7 +1545,14 @@
             const nowMins = now.getHours() * 60 + now.getMinutes();
             const [h, m] = prayerTimes[prayerId].split(':').map(Number);
             const startMins = h * 60 + m;
-            const endMins = startMins + toleranceMinutes;
+            const idx = prayers.indexOf(prayerId);
+            let endMins;
+            if (idx < prayers.length - 1) {
+                const [nh, nm] = prayerTimes[prayers[idx + 1]].split(':').map(Number);
+                endMins = nh * 60 + nm;
+            } else {
+                endMins = 23 * 60 + 59;
+            }
             return nowMins >= startMins && nowMins < endMins;
         }
 
@@ -1605,9 +1612,14 @@
                 }
                 const sholat = data.sholat || {};
                 prayers.forEach(p => {
+                    const cb = document.getElementById(p);
+                    const item = document.getElementById('item-' + p);
                     if (sholat[p]) {
-                        document.getElementById(p).checked = true;
-                        document.getElementById('item-' + p).classList.add('checked');
+                        cb.checked = true;
+                        item.classList.add('checked');
+                    } else {
+                        cb.checked = false;
+                        item.classList.remove('checked');
                     }
                 });
                 updateProgress();
