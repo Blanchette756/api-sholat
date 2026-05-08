@@ -30,12 +30,16 @@
         const auth = getAuth(app);
 
         window._firebaseAuth = auth;
+        let _wasAuthenticated = false;
 
         onAuthStateChanged(auth, (user) => {
             if (!user) {
-                window.location.href = "login.html";
+                if (!_wasAuthenticated) {
+                    window.location.href = "login.html";
+                }
                 return;
             }
+            _wasAuthenticated = true;
             document.body.style.visibility = 'visible';
             window._userName = user.displayName || user.email || '';
             const namaInput = document.getElementById('nama');
@@ -61,9 +65,14 @@
         };
 
         window._getIdToken = async () => {
-            const user = auth.currentUser;
-            if (!user) return null;
-            return user.getIdToken();
+            try {
+                const user = auth.currentUser;
+                if (!user) return null;
+                return await user.getIdToken();
+            } catch (e) {
+                console.warn('Token refresh gagal:', e.message);
+                return null;
+            }
         };
     </script>
     <style>
