@@ -1201,6 +1201,18 @@
 
     <!-- ══ CONFIRM MODAL ══ -->
     <div class="modal-overlay" id="confirm-modal">
+
+    <!-- ══ COMPLETION OVERLAY ══ -->
+    <div class="modal-overlay" id="done-overlay" style="z-index:200">
+        <div class="modal-box" style="max-width:380px">
+            <span class="modal-icon">🌟</span>
+            <div class="modal-title">Alhamdulillah!</div>
+            <div class="modal-desc" id="done-message">Checklist hari ini sudah selesai. Kembali lagi besok ya!</div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-confirm" onclick="window._firebaseSignOut()">Keluar</button>
+            </div>
+        </div>
+    </div>
         <div class="modal-box">
             <span class="modal-icon">📋</span>
             <div class="modal-title">Kirim Laporan?</div>
@@ -1531,12 +1543,14 @@
             e.preventDefault();
             const nama = document.getElementById('nama').value.trim();
 
-            if (!nama) { showMsg('❌ Nama harus diisi dulu ya!', 'error'); return; }
-            if (nama.length < 3) { showMsg('❌ Nama minimal 3 karakter!', 'error'); return; }
+            if (!nama) { showMsg('Nama harus diisi dulu ya!', 'error'); return; }
+            if (nama.length < 3) { showMsg('Nama minimal 3 karakter!', 'error'); return; }
 
             const status = {};
             prayers.forEach(p => status[p] = document.getElementById(p).checked);
             const total = Object.values(status).filter(Boolean).length;
+
+            if (total === 0) { showMsg('Belum ada sholat yang diceklis!', 'error'); return; }
 
             pendingSubmitData = { nama, ...status, totalSholat: total };
 
@@ -1588,20 +1602,20 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.status === 'success' || data.status === 'sukses') {
-                        showMsg('✅ Laporan diterima! ' + (data.message || '') + ' (' + total + '/5 sholat)', 'success');
                         document.getElementById('sholatForm').querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
                         prayers.forEach(p => document.getElementById('item-' + p).classList.remove('checked'));
                         try { localStorage.removeItem('sholatChecklist'); } catch (e) { }
+                        try { localStorage.setItem('sholatSubmitted_' + getCurrentWITA().toDateString(), '1'); } catch (e) { }
                         updateProgress();
-                        setTimeout(() => document.getElementById('pesan-server').classList.add('hidden'), 5000);
+                        showDoneScreen('Laporan sholat berhasil dikirim! (' + total + '/5)\nSampai jumpa besok!');
                     } else {
-                        showMsg('❌ Gagal: ' + (data.message || 'Server menolak data'), 'error');
+                        showMsg('Gagal: ' + (data.message || 'Server menolak data'), 'error');
                     }
                     resetBtn();
                 })
                 .catch((err) => {
-                    console.error("Ini error aslinya bro:", err);
-                    showMsg('❌ Koneksi gagal ke Server Awan! Cek koneksi internetmu.', 'error');
+                    console.error("Error:", err);
+                    showMsg('Koneksi gagal! Cek koneksi internetmu.', 'error');
                     resetBtn();
                 });
 
@@ -1623,12 +1637,27 @@
             d.classList.remove('hidden');
         }
 
+        function showDoneScreen(msg) {
+            document.getElementById('done-message').textContent = msg;
+            document.getElementById('done-overlay').classList.add('show');
+        }
+
+        function checkAlreadySubmitted() {
+            try {
+                const today = getCurrentWITA().toDateString();
+                if (localStorage.getItem('sholatSubmitted_' + today)) {
+                    showDoneScreen('Checklist hari ini sudah selesai.\nKembali lagi besok ya!');
+                }
+            } catch (e) {}
+        }
+
         // ══════════════════════════════════════════════
         // INIT
         // ══════════════════════════════════════════════
         fetchTolerance();
         loadChecklist();
         fetchPrayerTimes();
+        checkAlreadySubmitted();
         setInterval(updateLockState, 30000);
     </script>
 </body>
