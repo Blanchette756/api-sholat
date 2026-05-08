@@ -1,5 +1,6 @@
 Flask==3.0.0
 Flask-Cors==4.0.0
+Flask-Limiter==3.8.0
 pymongo==4.17.0
 dnspython==2.8.0
 python-dotenv==1.1.0
