@@ -1,9 +1,10 @@
 import os
 import json
 import logging
-from datetime import date
+import io
+from datetime import date, datetime, timedelta
 
-from flask import Flask, request, jsonify, send_from_directory, abort
+from flask import Flask, request, jsonify, send_from_directory, abort, Response
 from flask_cors import CORS
 from dotenv import load_dotenv
 
@@ -14,12 +15,28 @@ try:
 except ImportError:
     _has_limiter = False
 
+try:
+    import jwt as pyjwt
+    _has_jwt = True
+except ImportError:
+    _has_jwt = False
+
+try:
+    from openpyxl import Workbook
+    _has_openpyxl = True
+except ImportError:
+    _has_openpyxl = False
+
 from database import Database
 
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
+
+ADMIN_USER = os.environ.get('ADMIN_USER', '')
+ADMIN_PASS = os.environ.get('ADMIN_PASS', '')
+JWT_SECRET = os.environ.get('JWT_SECRET', 'fallback-secret-change-me')
 
 firebase_enabled = False
 try:
@@ -52,7 +69,7 @@ else:
 
 db_manager = Database()
 
-ALLOWED_STATIC = {'index.html', 'login.html', 'style.css'}
+ALLOWED_STATIC = {'index.html', 'login.html', 'style.css', 'admin-login.html', 'admin.html'}
 
 @app.after_request
 def set_security_headers(response):
@@ -77,6 +94,19 @@ def verify_token():
     except Exception as e:
         logger.warning("Token verification gagal: %s", e)
         return None
+
+def verify_admin():
+    if not _has_jwt:
+        return False
+    auth_header = request.headers.get('Authorization', '')
+    if not auth_header.startswith('Bearer '):
+        return False
+    token = auth_header[7:]
+    try:
+        payload = pyjwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        return payload.get("role") == "admin"
+    except Exception:
+        return False
 
 @app.route('/')
 def index():
@@ -123,6 +153,107 @@ def terima():
     except Exception as e:
         logger.exception("Error pada endpoint /sholat: %s", e)
         return jsonify({"status": "error", "message": "Terjadi kesalahan server"}), 500
+
+# ── Admin Endpoints ──
+
+@app.route('/admin/login', methods=['POST'])
+@_rate_limit("5 per minute")
+def admin_login():
+    if not ADMIN_USER or not ADMIN_PASS:
+        return jsonify({"status": "error", "message": "Admin belum dikonfigurasi"}), 503
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"status": "error", "message": "Data tidak valid"}), 400
+    username = data.get('username', '')
+    password = data.get('password', '')
+    if username == ADMIN_USER and password == ADMIN_PASS:
+        if not _has_jwt:
+            return jsonify({"status": "error", "message": "JWT tidak tersedia di server"}), 503
+        token = pyjwt.encode(
+            {"role": "admin", "exp": datetime.utcnow() + timedelta(hours=12)},
+            JWT_SECRET,
+            algorithm="HS256",
+        )
+        logger.info("Admin login berhasil")
+        return jsonify({"status": "success", "token": token})
+    logger.warning("Admin login gagal: username=%s", username)
+    return jsonify({"status": "error", "message": "Username atau password salah"}), 401
+
+@app.route('/admin/verify', methods=['GET'])
+def admin_verify():
+    if verify_admin():
+        return jsonify({"status": "ok"})
+    return jsonify({"status": "error"}), 401
+
+@app.route('/api/settings', methods=['GET'])
+def get_settings():
+    try:
+        settings = db_manager.get_settings()
+        return jsonify(settings)
+    except Exception as e:
+        logger.exception("Error get settings: %s", e)
+        return jsonify({"tolerance_minutes": 30})
+
+@app.route('/api/settings', methods=['POST'])
+def update_settings():
+    if not verify_admin():
+        return jsonify({"status": "error", "message": "Unauthorized"}), 401
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"status": "error", "message": "Data tidak valid"}), 400
+    minutes = data.get('tolerance_minutes')
+    if minutes not in (30, 60):
+        return jsonify({"status": "error", "message": "Toleransi harus 30 atau 60"}), 400
+    if db_manager.update_tolerance(minutes):
+        logger.info("Toleransi diubah ke %d menit", minutes)
+        return jsonify({"status": "success", "message": f"Toleransi diubah ke {minutes} menit"})
+    return jsonify({"status": "error", "message": "Gagal update"}), 500
+
+@app.route('/api/students', methods=['GET'])
+def get_students():
+    if not verify_admin():
+        return jsonify({"status": "error", "message": "Unauthorized"}), 401
+    try:
+        records = db_manager.get_all_records()
+        return jsonify(records)
+    except Exception as e:
+        logger.exception("Error get students: %s", e)
+        return jsonify({"status": "error", "message": "Gagal mengambil data"}), 500
+
+@app.route('/api/export', methods=['GET'])
+def export_excel():
+    if not verify_admin():
+        return jsonify({"status": "error", "message": "Unauthorized"}), 401
+    if not _has_openpyxl:
+        return jsonify({"status": "error", "message": "openpyxl tidak tersedia"}), 503
+    try:
+        records = db_manager.get_all_records()
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Laporan Sholat"
+        ws.append(["Email", "Tanggal", "Subuh", "Dzuhur", "Ashar", "Maghrib", "Isya"])
+        for r in records:
+            s = r.get("sholat", {})
+            ws.append([
+                r.get("email", ""),
+                r.get("tanggal", ""),
+                "Ya" if s.get("subuh") else "Tidak",
+                "Ya" if s.get("dzuhur") else "Tidak",
+                "Ya" if s.get("ashar") else "Tidak",
+                "Ya" if s.get("maghrib") else "Tidak",
+                "Ya" if s.get("isya") else "Tidak",
+            ])
+        buf = io.BytesIO()
+        wb.save(buf)
+        buf.seek(0)
+        return Response(
+            buf.getvalue(),
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=laporan_sholat.xlsx"},
+        )
+    except Exception as e:
+        logger.exception("Error export: %s", e)
+        return jsonify({"status": "error", "message": "Gagal export"}), 500
 
 if __name__ == '__main__':
     print("=======================================")

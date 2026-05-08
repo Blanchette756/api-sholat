@@ -5,3 +5,5 @@ pymongo==4.17.0
 dnspython==2.8.0
 python-dotenv==1.1.0
 firebase-admin==6.5.0
+PyJWT==2.9.0
+openpyxl==3.1.2

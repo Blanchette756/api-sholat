@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Reve</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0d0a0e;
+            --surface: #1a1015;
+            --surface2: #241820;
+            --surface3: #2e1e28;
+            --red: #c41e3a;
+            --red-dark: #8b0000;
+            --red-light: #e8354d;
+            --red-glow: rgba(196, 30, 58, 0.25);
+            --green: #2ecc71;
+            --gold: #c49a3c;
+            --text: #e8d5d5;
+            --text2: #a08888;
+            --text3: #6a5555;
+            --border: rgba(196, 30, 58, 0.2);
+            --border2: rgba(196, 30, 58, 0.35);
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+            --r: 18px;
+            --r-sm: 12px;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 28px 16px 60px;
+            visibility: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 700px 500px at 30% 0%, rgba(196, 30, 58, 0.06) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 400px at 90% 90%, rgba(139, 0, 0, 0.05) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .wrapper {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── WELCOME OVERLAY ── */
+        .welcome-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            animation: welcomeFade 3s ease forwards;
+        }
+        .welcome-text {
+            font-family: 'Noto Serif', serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--text);
+            opacity: 0;
+            animation: welcomeIn 1.5s ease 0.3s forwards;
+            text-shadow: 0 0 40px rgba(196, 30, 58, 0.4);
+        }
+        .welcome-sub {
+            font-size: 14px;
+            color: var(--text2);
+            opacity: 0;
+            animation: welcomeIn 1s ease 1s forwards;
+            margin-top: 8px;
+        }
+        .welcome-line {
+            width: 60px;
+            height: 2px;
+            background: var(--red);
+            margin-top: 16px;
+            opacity: 0;
+            animation: welcomeIn 0.8s ease 0.8s forwards;
+            box-shadow: 0 0 15px rgba(196, 30, 58, 0.5);
+        }
+        @keyframes welcomeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes welcomeFade {
+            0%, 70% { opacity: 1; visibility: visible; }
+            100% { opacity: 0; visibility: hidden; pointer-events: none; }
+        }
+
+        /* ── HEADER ── */
+        .header-card {
+            background: linear-gradient(135deg, var(--red-dark) 0%, #1a0510 60%, var(--surface) 100%);
+            border-radius: 26px;
+            padding: 24px 22px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 40px rgba(196, 30, 58, 0.12);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeUp 0.4s ease both 2.8s;
+            opacity: 0;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .header-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: var(--surface2);
+            border: 2px solid var(--border2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            filter: drop-shadow(0 0 8px rgba(196, 30, 58, 0.3));
+        }
+        .header-info h2 {
+            font-family: 'Noto Serif', serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .header-info p {
+            font-size: 11px;
+            color: var(--text2);
+            margin-top: 2px;
+        }
+        .btn-logout {
+            padding: 8px 16px;
+            background: var(--surface2);
+            color: var(--text2);
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-sm);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.22s ease;
+        }
+        .btn-logout:hover {
+            border-color: var(--red);
+            color: var(--red-light);
+        }
+
+        /* ── CARDS ── */
+        .card {
+            background: var(--surface);
+            border-radius: var(--r);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            opacity: 0;
+        }
+        .card:nth-child(2) { animation: fadeUp 0.45s ease both 2.9s; }
+        .card:nth-child(3) { animation: fadeUp 0.45s ease both 3.0s; }
+        .card:nth-child(4) { animation: fadeUp 0.45s ease both 3.1s; }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 14px;
+        }
+
+        /* ── TOLERANCE CONFIG ── */
+        .tolerance-options {
+            display: flex;
+            gap: 10px;
+        }
+        .tol-btn {
+            flex: 1;
+            padding: 14px;
+            background: var(--surface2);
+            border: 2px solid var(--border);
+            border-radius: var(--r-sm);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text2);
+            cursor: pointer;
+            transition: all 0.22s ease;
+            text-align: center;
+        }
+        .tol-btn:hover { border-color: var(--red); color: var(--text); }
+        .tol-btn.active {
+            border-color: var(--red);
+            background: rgba(196, 30, 58, 0.12);
+            color: var(--red-light);
+            box-shadow: 0 0 12px var(--red-glow);
+        }
+        .tol-save {
+            margin-top: 12px;
+            width: 100%;
+            padding: 12px;
+            background: var(--red);
+            color: #fff;
+            border: none;
+            border-radius: var(--r-sm);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            box-shadow: 0 4px 14px rgba(196, 30, 58, 0.25);
+        }
+        .tol-save:hover { background: var(--red-light); transform: translateY(-1px); }
+        .tol-status {
+            margin-top: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            color: var(--green);
+            display: none;
+        }
+
+        /* ── EXPORT ── */
+        .export-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .export-info { font-size: 13px; color: var(--text2); }
+        .export-info strong { color: var(--text); }
+        .btn-export {
+            padding: 10px 20px;
+            background: var(--surface2);
+            color: var(--text);
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-sm);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-export:hover {
+            border-color: var(--red);
+            background: rgba(196, 30, 58, 0.1);
+            color: var(--red-light);
+        }
+
+        /* ── TABLE ── */
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        th {
+            background: var(--surface2);
+            color: var(--text2);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 10px;
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        td {
+            padding: 10px 8px;
+            color: var(--text);
+            border-bottom: 1px solid rgba(196, 30, 58, 0.08);
+            font-weight: 600;
+        }
+        tr:hover td { background: rgba(196, 30, 58, 0.04); }
+        .badge-ya {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
+            background: rgba(46, 204, 113, 0.15);
+            color: var(--green);
+        }
+        .badge-tidak {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
+            background: rgba(196, 30, 58, 0.1);
+            color: var(--text3);
+        }
+        .table-empty {
+            text-align: center;
+            padding: 30px;
+            color: var(--text3);
+            font-size: 13px;
+        }
+        .table-filter {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .filter-input {
+            flex: 1;
+            padding: 9px 12px;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-sm);
+            color: var(--text);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 12px;
+            outline: none;
+        }
+        .filter-input:focus { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-glow); }
+        .filter-input::placeholder { color: var(--text3); }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 480px) {
+            body { padding: 16px 12px 48px; }
+            .header-card { padding: 18px 16px; flex-wrap: wrap; gap: 12px; }
+            .welcome-text { font-size: 28px; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- WELCOME ANIMATION -->
+    <div class="welcome-overlay" id="welcome-overlay">
+        <div class="welcome-text">Welcome, Reve</div>
+        <div class="welcome-line"></div>
+        <div class="welcome-sub">Command center ready</div>
+    </div>
+
+    <div class="wrapper">
+        <!-- HEADER -->
+        <div class="header-card">
+            <div class="header-left">
+                <div class="header-avatar">🐺</div>
+                <div class="header-info">
+                    <h2>Reve</h2>
+                    <p id="header-date"></p>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="logout()">Keluar</button>
+        </div>
+
+        <!-- TOLERANCE CONFIG -->
+        <div class="card">
+            <p class="card-title">Toleransi Waktu Ceklis</p>
+            <div class="tolerance-options">
+                <button class="tol-btn" data-val="30" onclick="selectTol(30)">30 menit</button>
+                <button class="tol-btn" data-val="60" onclick="selectTol(60)">60 menit</button>
+            </div>
+            <button class="tol-save" onclick="saveTol()">Simpan Pengaturan</button>
+            <div class="tol-status" id="tol-status"></div>
+        </div>
+
+        <!-- EXPORT -->
+        <div class="card">
+            <p class="card-title">Export Data</p>
+            <div class="export-row">
+                <div class="export-info">Download semua data laporan sholat ke <strong>Excel</strong></div>
+                <button class="btn-export" onclick="exportExcel()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Export
+                </button>
+            </div>
+        </div>
+
+        <!-- STUDENT DATA TABLE -->
+        <div class="card">
+            <p class="card-title">Data Siswa</p>
+            <div class="table-filter">
+                <input type="text" class="filter-input" id="filter-input" placeholder="Cari email atau tanggal..." oninput="filterTable()">
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Tanggal</th>
+                            <th>Subuh</th>
+                            <th>Dzuhur</th>
+                            <th>Ashar</th>
+                            <th>Maghrib</th>
+                            <th>Isya</th>
+                        </tr>
+                    </thead>
+                    <tbody id="student-tbody"></tbody>
+                </table>
+                <div class="table-empty" id="table-empty">Memuat data...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const TOKEN = localStorage.getItem('adminToken');
+        const HEADERS = { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' };
+        let selectedTol = 30;
+        let allRecords = [];
+
+        // ── Auth guard ──
+        (async () => {
+            if (!TOKEN) { window.location.href = 'admin-login.html'; return; }
+            try {
+                const res = await fetch('/admin/verify', { headers: HEADERS });
+                if (!res.ok) throw new Error();
+            } catch (e) {
+                localStorage.removeItem('adminToken');
+                window.location.href = 'admin-login.html';
+                return;
+            }
+            document.body.style.visibility = 'visible';
+        })();
+
+        // ── Date ──
+        (function () {
+            const d = new Date();
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+            document.getElementById('header-date').textContent = days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+        })();
+
+        // ── Load settings ──
+        async function loadSettings() {
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+                selectedTol = data.tolerance_minutes || 30;
+                document.querySelectorAll('.tol-btn').forEach(b => {
+                    b.classList.toggle('active', parseInt(b.dataset.val) === selectedTol);
+                });
+            } catch (e) {}
+        }
+
+        function selectTol(val) {
+            selectedTol = val;
+            document.querySelectorAll('.tol-btn').forEach(b => {
+                b.classList.toggle('active', parseInt(b.dataset.val) === val);
+            });
+        }
+
+        async function saveTol() {
+            const statusEl = document.getElementById('tol-status');
+            try {
+                const res = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: HEADERS,
+                    body: JSON.stringify({ tolerance_minutes: selectedTol }),
+                });
+                const data = await res.json();
+                statusEl.textContent = data.message || 'Tersimpan';
+                statusEl.style.display = 'block';
+                statusEl.style.color = '#2ecc71';
+                setTimeout(() => statusEl.style.display = 'none', 3000);
+            } catch (e) {
+                statusEl.textContent = 'Gagal menyimpan';
+                statusEl.style.display = 'block';
+                statusEl.style.color = '#e8354d';
+            }
+        }
+
+        // ── Load students ──
+        async function loadStudents() {
+            const tbody = document.getElementById('student-tbody');
+            const emptyEl = document.getElementById('table-empty');
+            try {
+                const res = await fetch('/api/students', { headers: HEADERS });
+                allRecords = await res.json();
+                renderTable(allRecords);
+            } catch (e) {
+                emptyEl.textContent = 'Gagal memuat data';
+            }
+        }
+
+        function renderTable(records) {
+            const tbody = document.getElementById('student-tbody');
+            const emptyEl = document.getElementById('table-empty');
+            if (!records.length) {
+                tbody.innerHTML = '';
+                emptyEl.textContent = 'Belum ada data';
+                emptyEl.style.display = 'block';
+                return;
+            }
+            emptyEl.style.display = 'none';
+            tbody.innerHTML = records.map(r => {
+                const s = r.sholat || {};
+                const badge = (v) => v ? '<span class="badge-ya">Ya</span>' : '<span class="badge-tidak">-</span>';
+                return `<tr>
+                    <td>${esc(r.email || '-')}</td>
+                    <td>${esc(r.tanggal || '-')}</td>
+                    <td>${badge(s.subuh)}</td>
+                    <td>${badge(s.dzuhur)}</td>
+                    <td>${badge(s.ashar)}</td>
+                    <td>${badge(s.maghrib)}</td>
+                    <td>${badge(s.isya)}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function filterTable() {
+            const q = document.getElementById('filter-input').value.toLowerCase();
+            const filtered = allRecords.filter(r =>
+                (r.email || '').toLowerCase().includes(q) ||
+                (r.tanggal || '').toLowerCase().includes(q)
+            );
+            renderTable(filtered);
+        }
+
+        function esc(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        // ── Export ──
+        async function exportExcel() {
+            try {
+                const res = await fetch('/api/export', { headers: HEADERS });
+                if (!res.ok) throw new Error();
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'laporan_sholat.xlsx';
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                alert('Gagal export data');
+            }
+        }
+
+        // ── Logout ──
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'admin-login.html';
+        }
+
+        // ── Init ──
+        loadSettings();
+        loadStudents();
+    </script>
+</body>
+
+</html>

@@ -775,6 +775,29 @@
             display: none !important;
         }
 
+        .prayer-item.locked {
+            opacity: 0.4;
+            pointer-events: none;
+            position: relative;
+        }
+        .prayer-item.locked .checkmark-box {
+            background: #ddd;
+            border-color: #ccc;
+        }
+        .lock-badge {
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            font-size: 9px;
+            font-weight: 800;
+            color: var(--text3);
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            padding: 2px 7px;
+            border-radius: 8px;
+        }
+        .prayer-item.unlocked .lock-badge { display: none; }
+
         /* ──────────── DIVIDER ──────────── */
         .list-divider {
             height: 1px;
@@ -1095,6 +1118,7 @@
                             <polyline points="1,5 4.5,8.5 11,1" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </div>
+                    <span class="lock-badge" id="lock-subuh">🔒</span>
                 </div>
 
                 <div class="prayer-item" id="item-dzuhur" onclick="toggleItem('dzuhur')">
@@ -1109,6 +1133,7 @@
                             <polyline points="1,5 4.5,8.5 11,1" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </div>
+                    <span class="lock-badge" id="lock-dzuhur">🔒</span>
                 </div>
 
                 <div class="prayer-item" id="item-ashar" onclick="toggleItem('ashar')">
@@ -1123,6 +1148,7 @@
                             <polyline points="1,5 4.5,8.5 11,1" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </div>
+                    <span class="lock-badge" id="lock-ashar">🔒</span>
                 </div>
 
                 <div class="prayer-item" id="item-maghrib" onclick="toggleItem('maghrib')">
@@ -1137,6 +1163,7 @@
                             <polyline points="1,5 4.5,8.5 11,1" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </div>
+                    <span class="lock-badge" id="lock-maghrib">🔒</span>
                 </div>
 
                 <div class="prayer-item" id="item-isya" onclick="toggleItem('isya')">
@@ -1151,6 +1178,7 @@
                             <polyline points="1,5 4.5,8.5 11,1" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
                     </div>
+                    <span class="lock-badge" id="lock-isya">🔒</span>
                 </div>
 
                 <div class="list-divider"></div>
@@ -1209,8 +1237,17 @@
         const LAT = 3.3011;
         const LON = 117.5765;
 
-        let prayerTimes = null; // { subuh: "04:32", dzuhur: "12:08", ... }
+        let prayerTimes = null;
         let countdownInterval = null;
+        let toleranceMinutes = 30;
+
+        async function fetchTolerance() {
+            try {
+                const res = await fetch('/api/settings');
+                const data = await res.json();
+                toleranceMinutes = data.tolerance_minutes || 30;
+            } catch (e) {}
+        }
 
         // ══════════════════════════════════════════════
         // DATE BADGE
@@ -1250,6 +1287,7 @@
                     renderSchedule();
                     updatePrayerTimeTexts();
                     startCountdown();
+                    updateLockState();
                 }
             } catch (e) {
                 // Fallback to approximate times for Tarakan WITA
@@ -1263,6 +1301,7 @@
                 renderSchedule();
                 updatePrayerTimeTexts();
                 startCountdown();
+                updateLockState();
             }
         }
 
@@ -1407,14 +1446,48 @@
         // CHECKLIST LOGIC
         // ══════════════════════════════════════════════
         function toggleItem(id) {
-            const cb = document.getElementById(id);
             const item = document.getElementById('item-' + id);
+            if (item.classList.contains('locked')) return;
+            const cb = document.getElementById(id);
             cb.checked = !cb.checked;
             item.classList.toggle('checked', cb.checked);
             item.classList.add('pulse-anim');
             setTimeout(() => item.classList.remove('pulse-anim'), 300);
             saveChecklist();
             updateProgress();
+        }
+
+        function isPrayerUnlocked(prayerId) {
+            if (!prayerTimes) return false;
+            const now = getCurrentWITA();
+            const nowMins = now.getHours() * 60 + now.getMinutes();
+            const [h, m] = prayerTimes[prayerId].split(':').map(Number);
+            const startMins = h * 60 + m;
+            const endMins = startMins + toleranceMinutes;
+            return nowMins >= startMins && nowMins < endMins;
+        }
+
+        function updateLockState() {
+            if (!prayerTimes) return;
+            prayers.forEach(p => {
+                const item = document.getElementById('item-' + p);
+                const lockBadge = document.getElementById('lock-' + p);
+                const unlocked = isPrayerUnlocked(p);
+                if (unlocked) {
+                    item.classList.remove('locked');
+                    item.classList.add('unlocked');
+                    if (lockBadge) lockBadge.style.display = 'none';
+                } else {
+                    if (!document.getElementById(p).checked) {
+                        item.classList.add('locked');
+                        item.classList.remove('unlocked');
+                        if (lockBadge) lockBadge.style.display = '';
+                    } else {
+                        item.classList.remove('locked');
+                        if (lockBadge) lockBadge.style.display = 'none';
+                    }
+                }
+            });
         }
 
         function updateProgress() {
@@ -1553,8 +1626,10 @@
         // ══════════════════════════════════════════════
         // INIT
         // ══════════════════════════════════════════════
+        fetchTolerance();
         loadChecklist();
         fetchPrayerTimes();
+        setInterval(updateLockState, 30000);
     </script>
 </body>
 
