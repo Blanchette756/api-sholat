@@ -387,7 +387,7 @@
         <div class="card">
             <p class="card-title">Export Data</p>
             <div class="export-row">
-                <div class="export-info">Download data ke <strong>Excel</strong><br><span style="font-size:11px;color:var(--text3)">Filter tanggal di tabel berlaku untuk export</span></div>
+                <div class="export-info">Download semua data ke <strong>Excel</strong></div>
                 <button class="btn-export" onclick="exportExcel()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     Export
@@ -400,8 +400,6 @@
             <p class="card-title">Data Siswa</p>
             <div class="table-filter">
                 <input type="text" class="filter-input" id="filter-input" placeholder="Cari nama/email..." oninput="filterTable()">
-                <input type="date" class="filter-input" id="filter-from" style="flex:0.7" onchange="loadStudents()">
-                <input type="date" class="filter-input" id="filter-to" style="flex:0.7" onchange="loadStudents()">
             </div>
             <div class="table-wrap">
                 <table>
@@ -421,13 +419,6 @@
                     <tbody id="student-tbody"></tbody>
                 </table>
                 <div class="table-empty" id="table-empty">Memuat data...</div>
-                <div id="pagination" style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12px;color:var(--text2)">
-                    <span id="page-info"></span>
-                    <div style="display:flex;gap:6px">
-                        <button class="btn-export" id="btn-prev" onclick="changePage(-1)" style="padding:6px 12px;font-size:11px" disabled>← Prev</button>
-                        <button class="btn-export" id="btn-next" onclick="changePage(1)" style="padding:6px 12px;font-size:11px">Next →</button>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -437,9 +428,6 @@
         const HEADERS = { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' };
         let selectedTol = 30;
         let allRecords = [];
-        let currentPage = 1;
-        let totalRecords = 0;
-        const PAGE_SIZE = 50;
 
         // ── Auth guard ──
         (async () => {
@@ -504,36 +492,15 @@
 
         // ── Load students ──
         async function loadStudents() {
-            const tbody = document.getElementById('student-tbody');
             const emptyEl = document.getElementById('table-empty');
-            const dateFrom = document.getElementById('filter-from').value || '';
-            const dateTo = document.getElementById('filter-to').value || '';
             try {
-                let url = `/api/students?page=${currentPage}&limit=${PAGE_SIZE}`;
-                if (dateFrom) url += `&from=${dateFrom}`;
-                if (dateTo) url += `&to=${dateTo}`;
-                const res = await fetch(url, { headers: HEADERS });
+                const res = await fetch('/api/students?limit=10000', { headers: HEADERS });
                 const json = await res.json();
                 allRecords = json.data || [];
-                totalRecords = json.total || 0;
                 renderTable(allRecords);
-                updatePagination();
             } catch (e) {
                 emptyEl.textContent = 'Gagal memuat data';
             }
-        }
-
-        function updatePagination() {
-            const totalPages = Math.ceil(totalRecords / PAGE_SIZE) || 1;
-            document.getElementById('page-info').textContent = `Hal ${currentPage}/${totalPages} (${totalRecords} data)`;
-            document.getElementById('btn-prev').disabled = currentPage <= 1;
-            document.getElementById('btn-next').disabled = currentPage >= totalPages;
-        }
-
-        function changePage(dir) {
-            currentPage += dir;
-            if (currentPage < 1) currentPage = 1;
-            loadStudents();
         }
 
         function renderTable(records) {
@@ -584,14 +551,7 @@
         // ── Export ──
         async function exportExcel() {
             try {
-                const dateFrom = document.getElementById('filter-from').value || '';
-                const dateTo = document.getElementById('filter-to').value || '';
-                let url = '/api/export';
-                const params = [];
-                if (dateFrom) params.push('from=' + dateFrom);
-                if (dateTo) params.push('to=' + dateTo);
-                if (params.length) url += '?' + params.join('&');
-                const res = await fetch(url, { headers: HEADERS });
+                const res = await fetch('/api/export', { headers: HEADERS });
                 if (!res.ok) throw new Error();
                 const blob = await res.blob();
                 const a = document.createElement('a');
