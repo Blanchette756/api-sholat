@@ -2,7 +2,7 @@ import os
 import json
 import logging
 import io
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
 from flask import Flask, request, jsonify, send_from_directory, abort, Response
 from flask_cors import CORS
@@ -36,7 +36,40 @@ logger = logging.getLogger(__name__)
 
 ADMIN_USER = os.environ.get('ADMIN_USER', '')
 ADMIN_PASS = os.environ.get('ADMIN_PASS', '')
-JWT_SECRET = os.environ.get('JWT_SECRET', 'fallback-secret-change-me')
+JWT_SECRET = os.environ.get('JWT_SECRET', '')
+
+if not JWT_SECRET:
+    logger.warning("JWT_SECRET tidak di-set. Admin login akan gagal.")
+
+WITA = timezone(timedelta(hours=8))
+
+PRAYER_TIMES_APPROX = {
+    'subuh': (4, 20),
+    'dzuhur': (12, 0),
+    'ashar': (15, 15),
+    'maghrib': (18, 10),
+    'isya': (19, 20),
+}
+
+
+def get_wita_now():
+    return datetime.now(WITA)
+
+
+def get_wita_date_str():
+    return get_wita_now().strftime('%Y-%m-%d')
+
+
+def is_prayer_in_window(prayer_id, tolerance_minutes=30):
+    if prayer_id not in PRAYER_TIMES_APPROX:
+        return False
+    h, m = PRAYER_TIMES_APPROX[prayer_id]
+    now = get_wita_now()
+    start_mins = h * 60 + m
+    now_mins = now.hour * 60 + now.minute
+    end_mins = start_mins + tolerance_minutes
+    return start_mins <= now_mins < end_mins
+
 
 firebase_enabled = False
 try:
@@ -71,15 +104,26 @@ db_manager = Database()
 
 ALLOWED_STATIC = {'index.html', 'login.html', 'style.css', 'admin-login.html', 'admin.html'}
 
+
 @app.after_request
 def set_security_headers(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src https://fonts.gstatic.com; "
+        "img-src 'self' data:; "
+        "connect-src 'self' https://*.googleapis.com https://*.firebaseapp.com https://api.aladhan.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; "
+        "frame-src https://*.firebaseapp.com https://accounts.google.com;"
+    )
     if request.is_secure:
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     return response
+
 
 def verify_token():
     if not firebase_enabled:
@@ -95,8 +139,9 @@ def verify_token():
         logger.warning("Token verification gagal: %s", e)
         return None
 
+
 def verify_admin():
-    if not _has_jwt:
+    if not _has_jwt or not JWT_SECRET:
         return False
     auth_header = request.headers.get('Authorization', '')
     if not auth_header.startswith('Bearer '):
@@ -108,9 +153,11 @@ def verify_admin():
     except Exception:
         return False
 
+
 @app.route('/')
 def index():
     return send_from_directory('.', 'login.html')
+
 
 @app.route('/<path:path>')
 def static_files(path):
@@ -118,10 +165,101 @@ def static_files(path):
         return send_from_directory('.', path)
     abort(404)
 
+
 def _rate_limit(limit_string):
     if limiter:
         return limiter.limit(limit_string)
     return lambda f: f
+
+
+# ── Prayer Check (individual toggle with server-side validation) ──
+
+@app.route('/sholat/check', methods=['POST'])
+@_rate_limit("30 per minute")
+def check_prayer():
+    try:
+        user = verify_token()
+        if not user:
+            return jsonify({"status": "error", "message": "Silakan login terlebih dahulu"}), 401
+
+        data = request.get_json(silent=True)
+        if not data or not isinstance(data, dict):
+            return jsonify({"status": "error", "message": "Data tidak valid"}), 400
+
+        prayer = data.get('prayer', '')
+        checked = bool(data.get('checked', False))
+
+        if prayer not in PRAYER_TIMES_APPROX:
+            return jsonify({"status": "error", "message": "Sholat tidak valid"}), 400
+
+        uid = user.get('uid', '')
+        email = user.get('email', '')
+        nama = user.get('name', email)
+        tanggal = get_wita_date_str()
+
+        existing = db_manager.get_today_status(uid, tanggal)
+        if existing.get('finalized'):
+            return jsonify({"status": "error", "message": "Sudah dikirim hari ini"}), 409
+
+        tolerance = db_manager.get_settings().get('tolerance_minutes', 30)
+        if checked and not is_prayer_in_window(prayer, tolerance):
+            return jsonify({"status": "error", "message": "Di luar waktu sholat"}), 403
+
+        success, msg = db_manager.check_prayer(uid, email, nama, tanggal, prayer, checked)
+        if success:
+            return jsonify({"status": "success"})
+        return jsonify({"status": "error", "message": msg}), 400
+    except Exception as e:
+        logger.exception("Error pada /sholat/check: %s", e)
+        return jsonify({"status": "error", "message": "Terjadi kesalahan server"}), 500
+
+
+@app.route('/sholat/today', methods=['GET'])
+@_rate_limit("30 per minute")
+def get_today():
+    try:
+        user = verify_token()
+        if not user:
+            return jsonify({"status": "error", "message": "Login dulu"}), 401
+
+        uid = user.get('uid', '')
+        tanggal = get_wita_date_str()
+        status = db_manager.get_today_status(uid, tanggal)
+        return jsonify(status)
+    except Exception as e:
+        logger.exception("Error pada /sholat/today: %s", e)
+        return jsonify({"status": "error"}), 500
+
+
+@app.route('/sholat/finalize', methods=['POST'])
+@_rate_limit("5 per minute")
+def finalize():
+    try:
+        user = verify_token()
+        if not user:
+            return jsonify({"status": "error", "message": "Login dulu"}), 401
+
+        uid = user.get('uid', '')
+        tanggal = get_wita_date_str()
+
+        status = db_manager.get_today_status(uid, tanggal)
+        if status.get('finalized'):
+            return jsonify({"status": "error", "message": "Sudah dikirim hari ini"}), 409
+
+        sholat = status.get('sholat', {})
+        total = sum(1 for v in sholat.values() if v)
+        if total == 0:
+            return jsonify({"status": "error", "message": "Belum ada sholat yang diceklis"}), 400
+
+        db_manager.finalize_day(uid, tanggal)
+        logger.info("Laporan finalized uid=%s tanggal=%s total=%d", uid, tanggal, total)
+        return jsonify({"status": "success", "message": f"Laporan dikirim ({total}/5)"})
+    except Exception as e:
+        logger.exception("Error pada /sholat/finalize: %s", e)
+        return jsonify({"status": "error", "message": "Terjadi kesalahan server"}), 500
+
+
+# ── Legacy batch submit (backward compat) ──
 
 @app.route('/sholat', methods=['POST'])
 @_rate_limit("10 per minute")
@@ -143,8 +281,10 @@ def terima():
 
         uid = user.get('uid', '')
         email = user.get('email', '')
+        nama = user.get('name', email)
+        tanggal = get_wita_date_str()
 
-        success, message = db_manager.sholat(date.today(), subuh, dzuhur, ashar, maghrib, isya, uid, email)
+        success, message = db_manager.sholat(tanggal, subuh, dzuhur, ashar, maghrib, isya, uid, email, nama)
         if success:
             logger.info("Laporan sholat dari uid=%s berhasil", uid)
             return jsonify({"status": "success", "message": message}), 201
@@ -154,6 +294,7 @@ def terima():
         logger.exception("Error pada endpoint /sholat: %s", e)
         return jsonify({"status": "error", "message": "Terjadi kesalahan server"}), 500
 
+
 # ── Admin Endpoints ──
 
 @app.route('/admin/login', methods=['POST'])
@@ -161,6 +302,8 @@ def terima():
 def admin_login():
     if not ADMIN_USER or not ADMIN_PASS:
         return jsonify({"status": "error", "message": "Admin belum dikonfigurasi"}), 503
+    if not JWT_SECRET:
+        return jsonify({"status": "error", "message": "JWT_SECRET belum di-set"}), 503
     data = request.get_json(silent=True)
     if not data:
         return jsonify({"status": "error", "message": "Data tidak valid"}), 400
@@ -170,7 +313,7 @@ def admin_login():
         if not _has_jwt:
             return jsonify({"status": "error", "message": "JWT tidak tersedia di server"}), 503
         token = pyjwt.encode(
-            {"role": "admin", "exp": datetime.utcnow() + timedelta(hours=12)},
+            {"role": "admin", "exp": datetime.now(timezone.utc) + timedelta(hours=12)},
             JWT_SECRET,
             algorithm="HS256",
         )
@@ -179,11 +322,13 @@ def admin_login():
     logger.warning("Admin login gagal: username=%s", username)
     return jsonify({"status": "error", "message": "Username atau password salah"}), 401
 
+
 @app.route('/admin/verify', methods=['GET'])
 def admin_verify():
     if verify_admin():
         return jsonify({"status": "ok"})
     return jsonify({"status": "error"}), 401
+
 
 @app.route('/api/settings', methods=['GET'])
 def get_settings():
@@ -193,6 +338,7 @@ def get_settings():
     except Exception as e:
         logger.exception("Error get settings: %s", e)
         return jsonify({"tolerance_minutes": 30})
+
 
 @app.route('/api/settings', methods=['POST'])
 def update_settings():
@@ -209,16 +355,24 @@ def update_settings():
         return jsonify({"status": "success", "message": f"Toleransi diubah ke {minutes} menit"})
     return jsonify({"status": "error", "message": "Gagal update"}), 500
 
+
 @app.route('/api/students', methods=['GET'])
 def get_students():
     if not verify_admin():
         return jsonify({"status": "error", "message": "Unauthorized"}), 401
     try:
-        records = db_manager.get_all_records()
-        return jsonify(records)
+        page = request.args.get('page', 1, type=int)
+        limit = min(request.args.get('limit', 50, type=int), 200)
+        date_from = request.args.get('from', '')
+        date_to = request.args.get('to', '')
+        records, total = db_manager.get_all_records(
+            page=page, limit=limit, date_from=date_from, date_to=date_to
+        )
+        return jsonify({"data": records, "total": total, "page": page, "limit": limit})
     except Exception as e:
         logger.exception("Error get students: %s", e)
         return jsonify({"status": "error", "message": "Gagal mengambil data"}), 500
+
 
 @app.route('/api/export', methods=['GET'])
 def export_excel():
@@ -227,14 +381,17 @@ def export_excel():
     if not _has_openpyxl:
         return jsonify({"status": "error", "message": "openpyxl tidak tersedia"}), 503
     try:
-        records = db_manager.get_all_records()
+        date_from = request.args.get('from', '')
+        date_to = request.args.get('to', '')
+        records, _ = db_manager.get_all_records(page=1, limit=10000, date_from=date_from, date_to=date_to)
         wb = Workbook()
         ws = wb.active
         ws.title = "Laporan Sholat"
-        ws.append(["Email", "Tanggal", "Subuh", "Dzuhur", "Ashar", "Maghrib", "Isya"])
+        ws.append(["Nama", "Email", "Tanggal", "Subuh", "Dzuhur", "Ashar", "Maghrib", "Isya", "Status"])
         for r in records:
             s = r.get("sholat", {})
             ws.append([
+                r.get("nama", ""),
                 r.get("email", ""),
                 r.get("tanggal", ""),
                 "Ya" if s.get("subuh") else "Tidak",
@@ -242,6 +399,7 @@ def export_excel():
                 "Ya" if s.get("ashar") else "Tidak",
                 "Ya" if s.get("maghrib") else "Tidak",
                 "Ya" if s.get("isya") else "Tidak",
+                "Selesai" if r.get("finalized") else "Belum",
             ])
         buf = io.BytesIO()
         wb.save(buf)
@@ -254,6 +412,7 @@ def export_excel():
     except Exception as e:
         logger.exception("Error export: %s", e)
         return jsonify({"status": "error", "message": "Gagal export"}), 500
+
 
 if __name__ == '__main__':
     print("=======================================")

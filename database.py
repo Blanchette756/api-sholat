@@ -4,6 +4,9 @@ from pymongo import MongoClient, ASCENDING
 
 logger = logging.getLogger(__name__)
 
+VALID_PRAYERS = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya']
+
+
 class Database:
     def __init__(self):
         url = os.environ.get('MONGODB_URI')
@@ -21,13 +24,52 @@ class Database:
         except Exception as e:
             logger.warning("Gagal membuat index: %s", e)
 
-    def sholat(self, tanggal, subuh, dzuhur, ashar, maghrib, isya, uid, email):
+    def check_prayer(self, uid, email, nama, tanggal, prayer, checked):
+        if prayer not in VALID_PRAYERS:
+            return False, "Sholat tidak valid"
+        self.collection.update_one(
+            {"uid": uid, "tanggal": tanggal},
+            {"$set": {
+                f"sholat.{prayer}": bool(checked),
+                "email": email,
+                "nama": nama,
+            }},
+            upsert=True,
+        )
+        return True, "OK"
+
+    def get_today_status(self, uid, tanggal):
+        doc = self.collection.find_one(
+            {"uid": uid, "tanggal": tanggal},
+            {"_id": 0}
+        )
+        if not doc:
+            return {"sholat": {p: False for p in VALID_PRAYERS}, "finalized": False, "nama": ""}
+        sholat = doc.get("sholat", {})
+        for p in VALID_PRAYERS:
+            if p not in sholat:
+                sholat[p] = False
+        return {
+            "sholat": sholat,
+            "finalized": doc.get("finalized", False),
+            "nama": doc.get("nama", ""),
+        }
+
+    def finalize_day(self, uid, tanggal):
+        result = self.collection.update_one(
+            {"uid": uid, "tanggal": tanggal},
+            {"$set": {"finalized": True}}
+        )
+        return result.modified_count > 0 or result.matched_count > 0
+
+    def sholat(self, tanggal, subuh, dzuhur, ashar, maghrib, isya, uid, email, nama=''):
         if not uid:
             return False, "UID tidak valid"
         result = self.collection.update_one(
             {"uid": uid, "tanggal": str(tanggal)},
             {"$set": {
                 "email": email,
+                "nama": nama,
                 "tanggal": str(tanggal),
                 "sholat": {
                     "subuh": bool(subuh),
@@ -59,6 +101,21 @@ class Database:
         )
         return True
 
-    def get_all_records(self):
-        docs = list(self.collection.find({}, {"_id": 0}).sort("tanggal", -1))
-        return docs
+    def get_all_records(self, page=1, limit=50, date_from='', date_to=''):
+        query = {}
+        if date_from or date_to:
+            date_q = {}
+            if date_from:
+                date_q["$gte"] = date_from
+            if date_to:
+                date_q["$lte"] = date_to
+            query["tanggal"] = date_q
+        total = self.collection.count_documents(query)
+        skip = (page - 1) * limit
+        docs = list(
+            self.collection.find(query, {"_id": 0})
+            .sort("tanggal", -1)
+            .skip(skip)
+            .limit(limit)
+        )
+        return docs, total
