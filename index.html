@@ -1505,14 +1505,18 @@
             try {
                 const token = await window._getIdToken();
                 if (!token) return;
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 15000);
                 const res = await fetch('/sholat/check', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token,
                     },
-                    body: JSON.stringify({ prayer: id, checked: newState })
+                    body: JSON.stringify({ prayer: id, checked: newState }),
+                    signal: controller.signal,
                 });
+                clearTimeout(timeout);
                 const data = await res.json();
                 if (data.status !== 'success') {
                     cb.checked = !newState;
@@ -1632,17 +1636,30 @@
             const btn = document.getElementById('btn-submit');
             btn.disabled = true;
             btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Mengirim...`;
+
+            let elapsed = 0;
             showMsg('Menghubungi server...', '');
+            const ticker = setInterval(() => {
+                elapsed++;
+                if (elapsed >= 3) {
+                    showMsg('Menghubungi server... (' + elapsed + 's) — mohon tunggu', '');
+                }
+            }, 1000);
 
             try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 20000);
+
                 const token = await window._getIdToken();
                 const res = await fetch('/sholat/finalize', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token,
-                    }
+                    },
+                    signal: controller.signal,
                 });
+                clearTimeout(timeout);
                 const data = await res.json();
                 if (data.status === 'success') {
                     const total = prayers.filter(p => document.getElementById(p).checked).length;
@@ -1651,8 +1668,13 @@
                     showMsg(data.message || 'Gagal mengirim', 'error');
                 }
             } catch (e) {
-                showMsg('Koneksi gagal! Cek internetmu.', 'error');
+                if (e.name === 'AbortError') {
+                    showMsg('Server terlalu lama merespons (>20s). Coba lagi.', 'error');
+                } else {
+                    showMsg('Koneksi gagal! Cek internetmu.', 'error');
+                }
             }
+            clearInterval(ticker);
             resetBtn();
         }
 
@@ -1682,6 +1704,7 @@
         // ══════════════════════════════════════════════
         // INIT
         // ══════════════════════════════════════════════
+        fetch('/ping').catch(() => {});
         fetchTolerance();
         fetchPrayerTimes();
         updateProgress();

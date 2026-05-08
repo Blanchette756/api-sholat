@@ -154,6 +154,11 @@ def verify_admin():
         return False
 
 
+@app.route('/ping')
+def ping():
+    return jsonify({"status": "ok"}), 200
+
+
 @app.route('/')
 def index():
     return send_from_directory('.', 'login.html')
