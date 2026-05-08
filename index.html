@@ -1578,6 +1578,15 @@
             document.getElementById('progress-fill').style.width = (checked / 5 * 100) + '%';
         }
 
+        function allPrayersPassed() {
+            if (!prayerTimes) return false;
+            const now = getCurrentWITA();
+            const nowMins = now.getHours() * 60 + now.getMinutes();
+            const [h, m] = prayerTimes.isya.split(':').map(Number);
+            const isyaEnd = h * 60 + m + toleranceMinutes;
+            return nowMins >= isyaEnd;
+        }
+
         // ══════════════════════════════════════════════
         // FETCH TODAY STATUS FROM SERVER
         // ══════════════════════════════════════════════
@@ -1590,7 +1599,7 @@
                 });
                 const data = await res.json();
 
-                if (data.finalized) {
+                if (data.finalized && allPrayersPassed()) {
                     showDoneScreen('Checklist hari ini sudah selesai.\nKembali lagi besok ya!');
                     return;
                 }
@@ -1603,6 +1612,12 @@
                 });
                 updateProgress();
                 updateLockState();
+                if (data.finalized) {
+                    const btn = document.getElementById('btn-submit');
+                    btn.disabled = true;
+                    btn.innerHTML = '✅ Laporan sudah terkirim';
+                    showMsg('Laporan hari ini sudah dikirim.', 'success');
+                }
             } catch (e) {
                 // Offline — no server state to load
             }
