@@ -34,9 +34,10 @@ except Exception as e:
 app = Flask(__name__)
 
 cors_origins = os.environ.get('CORS_ORIGINS', '')
-if not cors_origins:
-    raise RuntimeError("CORS_ORIGINS environment variable belum di-set")
-CORS(app, origins=cors_origins.split(','))
+if cors_origins:
+    CORS(app, origins=cors_origins.split(','))
+else:
+    logger.warning("CORS_ORIGINS tidak di-set, cross-origin requests akan diblokir")
 
 limiter = Limiter(get_remote_address, app=app, default_limits=["60 per minute"])
 
