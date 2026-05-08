@@ -1,18 +1,24 @@
 import os
+import logging
 from pymongo import MongoClient, ASCENDING
+
+logger = logging.getLogger(__name__)
 
 class Database:
     def __init__(self):
         url = os.environ.get('MONGODB_URI')
         if not url:
             raise RuntimeError("MONGODB_URI environment variable belum di-set")
-        self.client = MongoClient(url)
+        self.client = MongoClient(url, serverSelectionTimeoutMS=5000)
         self.db = self.client['db_sholat']
         self.collection = self.db['checklist_harian']
-        self.collection.create_index(
-            [("uid", ASCENDING), ("tanggal", ASCENDING)],
-            unique=True,
-        )
+        try:
+            self.collection.create_index(
+                [("uid", ASCENDING), ("tanggal", ASCENDING)],
+                unique=True,
+            )
+        except Exception as e:
+            logger.warning("Gagal membuat index: %s", e)
 
     def sholat(self, tanggal, subuh, dzuhur, ashar, maghrib, isya, uid, email):
         if not uid:

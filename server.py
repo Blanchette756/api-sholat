@@ -5,9 +5,14 @@ from datetime import date
 
 from flask import Flask, request, jsonify, send_from_directory, abort
 from flask_cors import CORS
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from dotenv import load_dotenv
+
+try:
+    from flask_limiter import Limiter
+    from flask_limiter.util import get_remote_address
+    _has_limiter = True
+except ImportError:
+    _has_limiter = False
 
 from database import Database
 
@@ -39,7 +44,11 @@ if cors_origins:
 else:
     logger.warning("CORS_ORIGINS tidak di-set, cross-origin requests akan diblokir")
 
-limiter = Limiter(get_remote_address, app=app, default_limits=["60 per minute"])
+if _has_limiter:
+    limiter = Limiter(get_remote_address, app=app, default_limits=["60 per minute"])
+else:
+    limiter = None
+    logger.warning("Flask-Limiter tidak tersedia, rate limiting nonaktif")
 
 db_manager = Database()
 
@@ -79,8 +88,13 @@ def static_files(path):
         return send_from_directory('.', path)
     abort(404)
 
+def _rate_limit(limit_string):
+    if limiter:
+        return limiter.limit(limit_string)
+    return lambda f: f
+
 @app.route('/sholat', methods=['POST'])
-@limiter.limit("10 per minute")
+@_rate_limit("10 per minute")
 def terima():
     try:
         user = verify_token()
