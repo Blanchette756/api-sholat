@@ -1771,7 +1771,6 @@
 
         function isPrayerUnlocked(prayerId) {
             if (!prayerTimes) return false;
-            if (isEODPeriod()) return false;
             const now = getCurrentWITA();
             const nowMins = now.getHours() * 60 + now.getMinutes();
             const [h, m] = prayerTimes[prayerId].split(':').map(Number);
@@ -1789,13 +1788,6 @@
         }
 
         function updateLockState() {
-            // ── EOD: 22:00 malam hingga sebelum subuh ──
-            if (isEODPeriod()) {
-                showDoneScreen();
-                return;
-            }
-
-            // Sebelum prayerTimes siap, tidak bisa tentukan per-prayer lock
             if (!prayerTimes) return;
 
             prayers.forEach(p => {
@@ -2062,12 +2054,14 @@
             btn.textContent = '⏳ Menyimpan...';
             statusEl.style.display = 'none';
 
+            const tanggal = window.tempReviewDate || getReviewDate();
+
             try {
                 const token = await window._getIdToken();
                 const res = await fetch('/sholat/reason', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ reason, date: getReviewDate() }),
+                    body: JSON.stringify({ reason, date: tanggal }),
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
@@ -2076,8 +2070,10 @@
                     statusEl.textContent = 'Terima kasih sudah jujur! 🙏';
                     statusEl.style.color = 'var(--teal)';
                     statusEl.style.display = 'block';
-                    // Switch to keluar only
-                    setTimeout(() => { btn.style.display = 'none'; }, 1500);
+                    setTimeout(() => {
+                        document.getElementById('done-overlay').classList.remove('show');
+                        window.tempReviewDate = null;
+                    }, 1500);
                 } else {
                     btn.textContent = '📝 Simpan Alasan & Selesai';
                     btn.disabled = false;
@@ -2237,11 +2233,18 @@
 
         async function verifikasiRekapKemarin() {
             const now = getCurrentWITA();
+            const nowMins = now.getHours() * 60 + now.getMinutes();
+
+            // Rekap hanya muncul setelah waktu Subuh (hari baru dimulai)
+            let subuhMins = 4 * 60 + 28;
+            if (prayerTimes && prayerTimes.subuh) {
+                const [sh, sm] = prayerTimes.subuh.split(':').map(Number);
+                subuhMins = sh * 60 + sm;
+            }
+            if (nowMins < subuhMins) return;
+
             const yesterday = new Date(now.getTime() - 24 * 3600000);
             const yesterdayStr = yesterday.toISOString().slice(0, 10);
-
-            // Cek apakah siswa sudah mengkonfirmasi rekap hari kemarin di sesi peramban ini
-            if (localStorage.getItem('rekap_selesai_' + yesterdayStr)) return;
 
             try {
                 const token = await window._getIdToken();
@@ -2253,17 +2256,21 @@
                 let sholat = data.sholat || {};
                 let total = Object.values(sholat).filter(Boolean).length;
 
-                // Skip if no data for yesterday (new user or never used)
+                // User baru / belum pakai app kemarin → skip
                 if (total === 0 && !data.finalized) return;
-                // Skip if all prayers done (no reason needed)
+
+                // 5/5 sholat terpenuhi → tampil sekali, dismiss mudah
                 if (total === 5) {
-                    localStorage.setItem('rekap_selesai_' + yesterdayStr, 'true');
+                    if (localStorage.getItem('rekap_selesai_' + yesterdayStr)) return;
+                    tampilkanModalRekapKewajiban(sholat, total, yesterdayStr);
                     return;
                 }
 
-                if (!data.alasan) {
-                    tampilkanModalRekapKewajiban(sholat, total, yesterdayStr);
-                }
+                // < 5 sholat: cek apakah alasan sudah diisi di server
+                if (data.alasan) return; // sudah diisi → skip
+
+                // Belum isi alasan → WAJIB tampil, blokir checklist
+                tampilkanModalRekapKewajiban(sholat, total, yesterdayStr);
             } catch (e) {
                 console.error("Gagal memverifikasi rekap kemarin");
             }
