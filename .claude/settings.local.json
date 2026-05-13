@@ -10,7 +10,17 @@
       "Bash(git branch *)",
       "Bash(pip show *)",
       "Bash(python *)",
-      "Bash(curl -s https://laporan-sholat.vercel.app/index.html)"
+      "Bash(curl -s https://laporan-sholat.vercel.app/index.html)",
+      "Bash(curl *)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npx vercel *)",
+      "Bash(pip install *)",
+      "Bash(gh api *)",
+      "Bash(npm i *)",
+      "Bash(vercel *)"
     ]
+  },
+  "enabledPlugins": {
+    "hackingtool@hackingtool-marketplace": true
   }
 }

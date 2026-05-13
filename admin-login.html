@@ -262,7 +262,7 @@
                 });
                 const data = await res.json();
                 if (data.status === 'success' && data.token) {
-                    localStorage.setItem('adminToken', data.token);
+                    sessionStorage.setItem('adminToken', data.token);
                     window.location.href = 'admin.html';
                 } else {
                     statusEl.textContent = data.message || 'Login gagal';

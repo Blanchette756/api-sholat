@@ -10,7 +10,14 @@
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
     <style>
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
             --bg: #0d0a0e;
             --surface: #1a1015;
@@ -31,6 +38,7 @@
             --r: 18px;
             --r-sm: 12px;
         }
+
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background: var(--bg);
@@ -41,6 +49,7 @@
             padding: 28px 16px 60px;
             visibility: hidden;
         }
+
         body::before {
             content: '';
             position: fixed;
@@ -50,6 +59,7 @@
                 radial-gradient(ellipse 500px 400px at 90% 90%, rgba(139, 0, 0, 0.05) 0%, transparent 60%);
             pointer-events: none;
         }
+
         .wrapper {
             width: 100%;
             max-width: 600px;
@@ -72,6 +82,7 @@
             flex-direction: column;
             animation: welcomeFade 3s ease forwards;
         }
+
         .welcome-text {
             font-family: 'Noto Serif', serif;
             font-size: 36px;
@@ -81,6 +92,7 @@
             animation: welcomeIn 1.5s ease 0.3s forwards;
             text-shadow: 0 0 40px rgba(196, 30, 58, 0.4);
         }
+
         .welcome-sub {
             font-size: 14px;
             color: var(--text2);
@@ -88,6 +100,7 @@
             animation: welcomeIn 1s ease 1s forwards;
             margin-top: 8px;
         }
+
         .welcome-line {
             width: 60px;
             height: 2px;
@@ -97,13 +110,32 @@
             animation: welcomeIn 0.8s ease 0.8s forwards;
             box-shadow: 0 0 15px rgba(196, 30, 58, 0.5);
         }
+
         @keyframes welcomeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         @keyframes welcomeFade {
-            0%, 70% { opacity: 1; visibility: visible; }
-            100% { opacity: 0; visibility: hidden; pointer-events: none; }
+
+            0%,
+            70% {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            100% {
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+            }
         }
 
         /* ── HEADER ── */
@@ -121,11 +153,13 @@
             animation: fadeUp 0.4s ease both 2.8s;
             opacity: 0;
         }
+
         .header-left {
             display: flex;
             align-items: center;
             gap: 14px;
         }
+
         .header-avatar {
             width: 44px;
             height: 44px;
@@ -138,17 +172,20 @@
             font-size: 22px;
             filter: drop-shadow(0 0 8px rgba(196, 30, 58, 0.3));
         }
+
         .header-info h2 {
             font-family: 'Noto Serif', serif;
             font-size: 18px;
             font-weight: 700;
             color: var(--text);
         }
+
         .header-info p {
             font-size: 11px;
             color: var(--text2);
             margin-top: 2px;
         }
+
         .btn-logout {
             padding: 8px 16px;
             background: var(--surface2);
@@ -161,6 +198,7 @@
             cursor: pointer;
             transition: all 0.22s ease;
         }
+
         .btn-logout:hover {
             border-color: var(--red);
             color: var(--red-light);
@@ -175,9 +213,18 @@
             border: 1px solid var(--border);
             opacity: 0;
         }
-        .card:nth-child(2) { animation: fadeUp 0.45s ease both 2.9s; }
-        .card:nth-child(3) { animation: fadeUp 0.45s ease both 3.0s; }
-        .card:nth-child(4) { animation: fadeUp 0.45s ease both 3.1s; }
+
+        .card:nth-child(2) {
+            animation: fadeUp 0.45s ease both 2.9s;
+        }
+
+        .card:nth-child(3) {
+            animation: fadeUp 0.45s ease both 3.0s;
+        }
+
+        .card:nth-child(4) {
+            animation: fadeUp 0.45s ease both 3.1s;
+        }
 
         .card-title {
             font-size: 11px;
@@ -193,6 +240,7 @@
             display: flex;
             gap: 10px;
         }
+
         .tol-btn {
             flex: 1;
             padding: 14px;
@@ -207,13 +255,19 @@
             transition: all 0.22s ease;
             text-align: center;
         }
-        .tol-btn:hover { border-color: var(--red); color: var(--text); }
+
+        .tol-btn:hover {
+            border-color: var(--red);
+            color: var(--text);
+        }
+
         .tol-btn.active {
             border-color: var(--red);
             background: rgba(196, 30, 58, 0.12);
             color: var(--red-light);
             box-shadow: 0 0 12px var(--red-glow);
         }
+
         .tol-save {
             margin-top: 12px;
             width: 100%;
@@ -229,7 +283,12 @@
             transition: all 0.22s ease;
             box-shadow: 0 4px 14px rgba(196, 30, 58, 0.25);
         }
-        .tol-save:hover { background: var(--red-light); transform: translateY(-1px); }
+
+        .tol-save:hover {
+            background: var(--red-light);
+            transform: translateY(-1px);
+        }
+
         .tol-status {
             margin-top: 10px;
             font-size: 12px;
@@ -245,8 +304,16 @@
             align-items: center;
             justify-content: space-between;
         }
-        .export-info { font-size: 13px; color: var(--text2); }
-        .export-info strong { color: var(--text); }
+
+        .export-info {
+            font-size: 13px;
+            color: var(--text2);
+        }
+
+        .export-info strong {
+            color: var(--text);
+        }
+
         .btn-export {
             padding: 10px 20px;
             background: var(--surface2);
@@ -262,6 +329,7 @@
             align-items: center;
             gap: 6px;
         }
+
         .btn-export:hover {
             border-color: var(--red);
             background: rgba(196, 30, 58, 0.1);
@@ -273,11 +341,13 @@
             overflow-x: auto;
             margin-top: 10px;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 12px;
         }
+
         th {
             background: var(--surface2);
             color: var(--text2);
@@ -289,13 +359,18 @@
             text-align: left;
             border-bottom: 1px solid var(--border);
         }
+
         td {
             padding: 10px 8px;
             color: var(--text);
             border-bottom: 1px solid rgba(196, 30, 58, 0.08);
             font-weight: 600;
         }
-        tr:hover td { background: rgba(196, 30, 58, 0.04); }
+
+        tr:hover td {
+            background: rgba(196, 30, 58, 0.04);
+        }
+
         .badge-ya {
             display: inline-block;
             padding: 2px 8px;
@@ -305,6 +380,7 @@
             background: rgba(46, 204, 113, 0.15);
             color: var(--green);
         }
+
         .badge-tidak {
             display: inline-block;
             padding: 2px 8px;
@@ -314,17 +390,20 @@
             background: rgba(196, 30, 58, 0.1);
             color: var(--text3);
         }
+
         .table-empty {
             text-align: center;
             padding: 30px;
             color: var(--text3);
             font-size: 13px;
         }
+
         .table-filter {
             display: flex;
             gap: 8px;
             margin-bottom: 12px;
         }
+
         .filter-input {
             flex: 1;
             padding: 9px 12px;
@@ -336,17 +415,193 @@
             font-size: 12px;
             outline: none;
         }
-        .filter-input:focus { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-glow); }
-        .filter-input::placeholder { color: var(--text3); }
+
+        .filter-input:focus {
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px var(--red-glow);
+        }
+
+        .filter-input::placeholder {
+            color: var(--text3);
+        }
 
         @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         @media (max-width: 480px) {
-            body { padding: 16px 12px 48px; }
-            .header-card { padding: 18px 16px; flex-wrap: wrap; gap: 12px; }
-            .welcome-text { font-size: 28px; }
+            body {
+                padding: 16px 12px 48px;
+            }
+
+            .header-card {
+                padding: 18px 16px;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .welcome-text {
+                font-size: 28px;
+            }
+        }
+
+        /* ── TABS ── */
+        .tab-btn {
+            padding: 7px 16px;
+            background: var(--surface2);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 11.5px;
+            font-weight: 800;
+            color: var(--text2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            border-color: var(--red);
+            color: var(--text);
+        }
+
+        .tab-btn.active {
+            background: rgba(196, 30, 58, 0.15);
+            border-color: var(--red);
+            color: var(--red-light);
+        }
+
+        /* ── WEEKLY / MONTHLY CARDS ── */
+        .report-student-card {
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-sm);
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .rsc-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            background: var(--surface2);
+            cursor: pointer;
+            gap: 10px;
+        }
+
+        .rsc-name {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text);
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .rsc-email {
+            font-size: 10.5px;
+            color: var(--text3);
+            font-weight: 600;
+        }
+
+        .rsc-badge {
+            flex-shrink: 0;
+            padding: 4px 12px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .rsc-body {
+            display: none;
+            padding: 12px 14px;
+            border-top: 1px solid var(--border);
+        }
+
+        .rsc-body.open {
+            display: block;
+        }
+
+        /* Progress bar mini */
+        .mini-track {
+            width: 100%;
+            height: 5px;
+            background: var(--surface3);
+            border-radius: 99px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .mini-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, var(--red-dark), var(--red));
+        }
+
+        /* Detail row */
+        .detail-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 0;
+            border-bottom: 1px solid rgba(196, 30, 58, 0.06);
+            font-size: 12px;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-tanggal {
+            width: 80px;
+            font-weight: 700;
+            color: var(--text2);
+            flex-shrink: 0;
+            font-size: 11px;
+        }
+
+        .detail-prayers {
+            display: flex;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .dp-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .dp-dot.done {
+            background: rgba(46, 204, 113, 0.18);
+            color: #2ecc71;
+        }
+
+        .dp-dot.miss {
+            background: rgba(196, 30, 58, 0.12);
+            color: var(--text3);
+        }
+
+        .detail-alasan {
+            font-size: 10.5px;
+            color: var(--gold);
+            font-style: italic;
+            margin-top: 2px;
+            padding-left: 88px;
         }
     </style>
 </head>
@@ -376,8 +631,8 @@
         <div class="card">
             <p class="card-title">Toleransi Waktu Ceklis</p>
             <div class="tolerance-options">
-                <button class="tol-btn" data-val="30" onclick="selectTol(30)">30 menit</button>
-                <button class="tol-btn" data-val="60" onclick="selectTol(60)">60 menit</button>
+                <button class="tol-btn" data-val="60" onclick="selectTol(60)">1 jam</button>
+                <button class="tol-btn" data-val="120" onclick="selectTol(120)">2 jam</button>
             </div>
             <button class="tol-save" onclick="saveTol()">Simpan Pengaturan</button>
             <div class="tol-status" id="tol-status"></div>
@@ -389,45 +644,97 @@
             <div class="export-row">
                 <div class="export-info">Download semua data ke <strong>Excel</strong></div>
                 <button class="btn-export" onclick="exportExcel()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
                     Export
                 </button>
             </div>
         </div>
 
         <!-- STUDENT DATA TABLE -->
-        <div class="card">
-            <p class="card-title">Data Siswa</p>
-            <div class="table-filter">
-                <input type="text" class="filter-input" id="filter-input" placeholder="Cari nama/email..." oninput="filterTable()">
+        <div class="card" id="card-harian">
+            <div
+                style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+                <p class="card-title" style="margin-bottom:0;">Data Harian Siswa</p>
+                <!-- Tab Navigation -->
+                <div style="display:flex; gap:6px;">
+                    <button class="tab-btn" onclick="switchTab('statistik')">Statistik (Peringkat)</button>
+                    <button class="tab-btn active" onclick="switchTab('harian')">Harian</button>
+                    <button class="tab-btn" onclick="switchTab('mingguan')">Mingguan</button>
+                    <button class="tab-btn" onclick="switchTab('bulanan')">Bulanan</button>
+                </div>
             </div>
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nama</th>
-                            <th>Email</th>
-                            <th>Tanggal</th>
-                            <th>Subuh</th>
-                            <th>Dzuhur</th>
-                            <th>Ashar</th>
-                            <th>Maghrib</th>
-                            <th>Isya</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="student-tbody"></tbody>
-                </table>
-                <div class="table-empty" id="table-empty">Memuat data...</div>
+
+            <!-- HARIAN VIEW -->
+            <div id="view-harian">
+                <div class="table-filter">
+                    <input type="text" class="filter-input" id="filter-input" placeholder="Cari nama/email..."
+                        oninput="filterTable()">
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nama</th>
+                                <th>Email</th>
+                                <th>Tanggal</th>
+                                <th>Subuh</th>
+                                <th>Dzuhur</th>
+                                <th>Ashar</th>
+                                <th>Maghrib</th>
+                                <th>Isya</th>
+                                <th>Alasan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="student-tbody"></tbody>
+                    </table>
+                    <div class="table-empty" id="table-empty">Memuat data...</div>
+                </div>
+            </div>
+
+            <!-- MINGGUAN VIEW -->
+            <div id="view-mingguan" style="display:none;">
+                <div class="table-filter">
+                    <input type="text" class="filter-input" id="filter-mingguan" placeholder="Cari nama/email..."
+                        oninput="filterWeekly()">
+                </div>
+                <div id="weekly-content">
+                    <div class="table-empty">Memuat data...</div>
+                </div>
+            </div>
+
+            <!-- BULANAN VIEW -->
+            <div id="view-bulanan" style="display:none;">
+                <div class="table-filter">
+                    <input type="text" class="filter-input" id="filter-bulanan" placeholder="Cari nama/email..."
+                        oninput="filterMonthly()">
+                </div>
+                <div id="monthly-content">
+                    <div class="table-empty">Memuat data...</div>
+                </div>
             </div>
         </div>
     </div>
 
+    <div id="view-statistik" style="display:none;">
+        <div id="statistik-content">
+            <div class="table-empty">Memuat data statistik...</div>
+        </div>
+    </div>
+
+
     <script>
-        const TOKEN = localStorage.getItem('adminToken');
+        const TOKEN = sessionStorage.getItem('adminToken');
         const HEADERS = { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' };
-        let selectedTol = 30;
+        let selectedTol = 60;
         let allRecords = [];
+        let weeklyData = [];
+        let monthlyData = [];
+        let currentTab = 'harian';
 
         // ── Auth guard ──
         (async () => {
@@ -436,7 +743,7 @@
                 const res = await fetch('/admin/verify', { headers: HEADERS });
                 if (!res.ok) throw new Error();
             } catch (e) {
-                localStorage.removeItem('adminToken');
+                sessionStorage.removeItem('adminToken');
                 window.location.href = 'admin-login.html';
                 return;
             }
@@ -451,16 +758,66 @@
             document.getElementById('header-date').textContent = days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
         })();
 
+        // ── Tabs ──
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById('view-harian').style.display = tab === 'harian' ? 'block' : 'none';
+            document.getElementById('view-mingguan').style.display = tab === 'mingguan' ? 'block' : 'none';
+            document.getElementById('view-bulanan').style.display = tab === 'bulanan' ? 'block' : 'none';
+            document.getElementById('view-statistik').style.display = tab === 'statistik' ? 'block' : 'none';
+
+            if (tab === 'mingguan' && weeklyData.length === 0) loadWeekly();
+            if (tab === 'bulanan' && monthlyData.length === 0) loadMonthly();
+            if (tab === 'statistik') loadStatistik();
+        }
+
+        async function loadStatistik() {
+            const el = document.getElementById('statistik-content');
+            el.innerHTML = '<div class="table-empty">Memuat data 7 hari terakhir...</div>';
+            try {
+                const res = await fetch('/api/statistik', { headers: HEADERS });
+                const json = await res.json();
+
+                let html = '<div style="display:flex; flex-direction:column; gap:12px;">';
+                json.data.forEach((r, index) => {
+                    const rankBadge = index === 0 ? '🥇 Peringkat 1' : index === 1 ? '🥈 Peringkat 2' : index === 2 ? '🥉 Peringkat 3' : `#${index + 1}`;
+                    const isTop3 = index < 3;
+
+                    html += `<div style="padding:16px; border:1.5px solid ${isTop3 ? 'var(--gold)' : 'var(--border)'}; border-radius:var(--r-sm); background:${isTop3 ? 'rgba(196, 154, 60, 0.05)' : 'var(--surface2)'};">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                                <strong style="color:var(--text);">${esc(r.nama)} <span style="font-size:10px; color:var(--gold); margin-left:6px;">${rankBadge}</span></strong>
+                                 <span style="font-weight:900; color:var(--green);">${r.total_sholat} Sholat</span>
+                            </div>`;
+
+                    r.detail_harian.forEach(d => {
+                        const w = d.waktu_ceklis || {};
+                        html += `<div style="font-size:11px; color:var(--text2); margin-top:4px;">
+                                <strong>${d.tanggal}</strong>: 
+                                 Subuh(${w.subuh || '-'}), Dzuhur(${w.dzuhur || '-'}), Ashar(${w.ashar || '-'}), Maghrib(${w.maghrib || '-'}), Isya(${w.isya || '-'})
+                             </div>`;
+                    });
+                    html += `</div>`;
+                });
+                html += '</div>';
+                el.innerHTML = html;
+            } catch (e) {
+                el.innerHTML = '<div class="table-empty">Gagal memuat statistik.</div>';
+            }
+        }
+
+
         // ── Load settings ──
         async function loadSettings() {
             try {
                 const res = await fetch('/api/settings');
                 const data = await res.json();
-                selectedTol = data.tolerance_minutes || 30;
+                selectedTol = data.tolerance_minutes || 60;
                 document.querySelectorAll('.tol-btn').forEach(b => {
                     b.classList.toggle('active', parseInt(b.dataset.val) === selectedTol);
                 });
-            } catch (e) {}
+            } catch (e) { }
         }
 
         function selectTol(val) {
@@ -490,7 +847,7 @@
             }
         }
 
-        // ── Load students ──
+        // ── Load harian students ──
         async function loadStudents() {
             const emptyEl = document.getElementById('table-empty');
             try {
@@ -515,10 +872,15 @@
             emptyEl.style.display = 'none';
             tbody.innerHTML = records.map(r => {
                 const s = r.sholat || {};
-                const badge = (v) => v ? '<span class="badge-ya">Ya</span>' : '<span class="badge-tidak">-</span>';
+                const badge = (v) => v
+                    ? '<span class="badge-ya">Ya</span>'
+                    : '<span class="badge-tidak">-</span>';
                 const statusBadge = r.finalized
                     ? '<span class="badge-ya">Selesai</span>'
                     : '<span class="badge-tidak">Belum</span>';
+                const alasan = r.alasan
+                    ? `<span style="font-size:11px; color:var(--gold); font-style:italic;" title="${esc(r.alasan)}">${esc(r.alasan.length > 30 ? r.alasan.substring(0, 30) + '…' : r.alasan)}</span>`
+                    : '<span style="color:var(--text3); font-size:11px;">—</span>';
                 return `<tr>
                     <td>${esc(r.nama || '-')}</td>
                     <td>${esc(r.email || '-')}</td>
@@ -528,18 +890,205 @@
                     <td>${badge(s.ashar)}</td>
                     <td>${badge(s.maghrib)}</td>
                     <td>${badge(s.isya)}</td>
-                    <td>${statusBadge}</td>
                 </tr>`;
             }).join('');
         }
 
         function filterTable() {
             const q = document.getElementById('filter-input').value.toLowerCase();
-            const filtered = allRecords.filter(r =>
-                (r.nama || '').toLowerCase().includes(q) ||
-                (r.email || '').toLowerCase().includes(q)
-            );
-            renderTable(filtered);
+            renderTable(allRecords.filter(r =>
+                (r.nama || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q)
+            ));
+        }
+
+        // ── Weekly ──
+        async function loadWeekly() {
+            document.getElementById('weekly-content').innerHTML = '<div class="table-empty">Memuat data mingguan...</div>';
+            try {
+                const res = await fetch('/api/weekly', { headers: HEADERS });
+                const json = await res.json();
+                weeklyData = json.data || [];
+                renderWeekly(weeklyData);
+            } catch (e) {
+                document.getElementById('weekly-content').innerHTML = '<div class="table-empty">Gagal memuat data</div>';
+            }
+        }
+
+        function filterWeekly() {
+            const q = document.getElementById('filter-mingguan').value.toLowerCase();
+            renderWeekly(weeklyData.filter(r =>
+                (r.nama || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q)
+            ));
+        }
+
+        function renderWeekly(data) {
+            const el = document.getElementById('weekly-content');
+            if (!data.length) { el.innerHTML = '<div class="table-empty">Belum ada data</div>'; return; }
+
+            // Group by minggu
+            const byWeek = {};
+            data.forEach(r => {
+                if (!byWeek[r.minggu]) byWeek[r.minggu] = { label: r.minggu_label, rows: [] };
+                byWeek[r.minggu].rows.push(r);
+            });
+
+            const prayerKeys = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
+            const prayerEmoji = { subuh: '🌙', dzuhur: '☀️', ashar: '🌤️', maghrib: '🌇', isya: '🌃' };
+
+            let html = '';
+            Object.keys(byWeek).sort().reverse().forEach(wk => {
+                const { label, rows } = byWeek[wk];
+                html += `<div style="margin-bottom:18px;">
+                    <div style="font-size:11px; font-weight:800; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--border);">📅 ${esc(label)}</div>`;
+
+                rows.forEach(r => {
+                    const pct = r.persen;
+                    const color = pct >= 80 ? '#2ecc71' : pct >= 50 ? 'var(--gold)' : 'var(--red-light)';
+                    const uid = (r.uid || r.email || '').replace(/[^a-z0-9]/gi, '');
+                    html += `<div class="report-student-card">
+                        <div class="rsc-header" onclick="toggleCard('rsc-${uid}-${wk.replace('-', '_')}')">
+                            <div>
+                                <div class="rsc-name">${esc(r.nama || '-')}</div>
+                                <div class="rsc-email">${esc(r.email || '-')}</div>
+                                <div class="mini-track" style="width:140px">
+                                    <div class="mini-fill" style="width:${pct}%; background:linear-gradient(90deg,${color},${color}88)"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="rsc-badge" style="background:${pct >= 80 ? 'rgba(46,204,113,0.15)' : pct >= 50 ? 'rgba(196,154,60,0.15)' : 'rgba(196,30,58,0.15)'}; color:${color};">${r.total_sholat}/${r.max_sholat} sholat</div>
+                                <div style="text-align:right; font-size:11px; color:var(--text3); margin-top:4px;">${pct}% • ${r.total_hari} hari</div>
+                            </div>
+                        </div>
+                        <div class="rsc-body" id="rsc-${uid}-${wk.replace('-', '_')}">`;
+
+                    r.detail.forEach(d => {
+                        const tanggalFmt = d.tanggal.substring(5); // MM-DD
+                        html += `<div class="detail-row">
+                            <span class="detail-tanggal">${tanggalFmt}</span>
+                            <div class="detail-prayers">`;
+                        prayerKeys.forEach(p => {
+                            const done = d.sholat && d.sholat[p];
+                            html += `<div class="dp-dot ${done ? 'done' : 'miss'}" title="${p}">${prayerEmoji[p]}</div>`;
+                        });
+                        html += `<span style="font-size:11px; font-weight:700; color:${d.total >= 5 ? '#2ecc71' : d.total >= 3 ? 'var(--gold)' : 'var(--red-light)'}; margin-left:6px;">${d.total}/5</span>`;
+                        html += `</div></div>`;
+                        if (d.alasan) {
+                            html += `<div class="detail-alasan">💬 "${esc(d.alasan)}"</div>`;
+                        }
+                    });
+
+                    html += `</div></div>`;
+                });
+                html += `</div>`;
+            });
+            el.innerHTML = html;
+        }
+
+        // ── Monthly ──
+        async function loadMonthly() {
+            document.getElementById('monthly-content').innerHTML = '<div class="table-empty">Memuat data bulanan...</div>';
+            try {
+                const res = await fetch('/api/monthly', { headers: HEADERS });
+                const json = await res.json();
+                monthlyData = json.data || [];
+                renderMonthly(monthlyData);
+            } catch (e) {
+                document.getElementById('monthly-content').innerHTML = '<div class="table-empty">Gagal memuat data</div>';
+            }
+        }
+
+        function filterMonthly() {
+            const q = document.getElementById('filter-bulanan').value.toLowerCase();
+            renderMonthly(monthlyData.filter(r =>
+                (r.nama || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q)
+            ));
+        }
+
+        function renderMonthly(data) {
+            const el = document.getElementById('monthly-content');
+            if (!data.length) { el.innerHTML = '<div class="table-empty">Belum ada data</div>'; return; }
+
+            const prayerKeys = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
+            const prayerEmoji = { subuh: '🌙', dzuhur: '☀️', ashar: '🌤️', maghrib: '🌇', isya: '🌃' };
+
+            // Group by bulan
+            const byMonth = {};
+            data.forEach(r => {
+                if (!byMonth[r.bulan]) byMonth[r.bulan] = { label: r.bulan_label, rows: [] };
+                byMonth[r.bulan].rows.push(r);
+            });
+
+            let html = '';
+            Object.keys(byMonth).sort().reverse().forEach(bk => {
+                const { label, rows } = byMonth[bk];
+                html += `<div style="margin-bottom:18px;">
+                    <div style="font-size:11px; font-weight:800; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--border);">🗓️ ${esc(label)}</div>`;
+
+                // Summary bar per student
+                rows.forEach(r => {
+                    const pct = r.persen;
+                    const color = pct >= 80 ? '#2ecc71' : pct >= 50 ? 'var(--gold)' : 'var(--red-light)';
+                    const uid = (r.uid || r.email || '').replace(/[^a-z0-9]/gi, '');
+                    const alasanList = r.detail.filter(d => d.alasan);
+
+                    html += `<div class="report-student-card">
+                        <div class="rsc-header" onclick="toggleCard('rsc-m-${uid}-${bk}')">
+                            <div>
+                                <div class="rsc-name">${esc(r.nama || '-')}</div>
+                                <div class="rsc-email">${esc(r.email || '-')}</div>
+                                <div class="mini-track" style="width:140px">
+                                    <div class="mini-fill" style="width:${pct}%; background:linear-gradient(90deg,${color},${color}88)"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="rsc-badge" style="background:${pct >= 80 ? 'rgba(46,204,113,0.15)' : pct >= 50 ? 'rgba(196,154,60,0.15)' : 'rgba(196,30,58,0.15)'}; color:${color};">${r.total_sholat}/${r.max_sholat}</div>
+                                <div style="text-align:right; font-size:11px; color:var(--text3); margin-top:4px;">${pct}% • ${r.total_hari} hari</div>
+                            </div>
+                        </div>
+                        <div class="rsc-body" id="rsc-m-${uid}-${bk}">`;
+
+                    // Per prayer summary
+                    html += `<div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">`;
+                    prayerKeys.forEach(p => {
+                        const total = r.detail.filter(d => d.sholat && d.sholat[p]).length;
+                        const max = r.total_hari;
+                        const pp = max ? Math.round(total / max * 100) : 0;
+                        html += `<div style="flex:1; min-width:56px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 6px; text-align:center;">
+                            <div style="font-size:16px;">${prayerEmoji[p]}</div>
+                            <div style="font-size:10px; font-weight:800; color:var(--text2); margin-top:3px;">${total}/${max}</div>
+                            <div style="font-size:9px; color:${pp >= 80 ? '#2ecc71' : pp >= 50 ? 'var(--gold)' : 'var(--red-light)'}; font-weight:700;">${pp}%</div>
+                        </div>`;
+                    });
+                    html += `</div>`;
+
+                    // Alasan list
+                    if (alasanList.length) {
+                        html += `<div style="font-size:10.5px; font-weight:800; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">💬 Catatan Alasan</div>`;
+                        alasanList.forEach(d => {
+                            html += `<div style="margin-bottom:6px; padding:8px 10px; background:rgba(196,154,60,0.08); border:1px solid rgba(196,154,60,0.2); border-radius:8px;">
+                                <span style="font-size:10px; font-weight:700; color:var(--text3);">${d.tanggal}</span>
+                                <div style="font-size:12px; color:var(--gold); font-style:italic; margin-top:2px;">"${esc(d.alasan)}"</div>
+                            </div>`;
+                        });
+                    }
+
+                    html += `</div></div>`;
+                });
+                html += `</div>`;
+            });
+            el.innerHTML = html;
+        }
+
+        function toggleCard(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('open');
+        }
+
+        function filterTable() {
+            const q = document.getElementById('filter-input').value.toLowerCase();
+            renderTable(allRecords.filter(r =>
+                (r.nama || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q)
+            ));
         }
 
         function esc(s) {
@@ -566,8 +1115,11 @@
 
         // ── Logout ──
         function logout() {
-            localStorage.removeItem('adminToken');
-            window.location.href = 'admin-login.html';
+            sessionStorage.removeItem('adminToken');
+            // Hapus cookie sesi di server
+            fetch('/admin/logout', { method: 'POST' }).finally(() => {
+                window.location.href = 'admin-login.html';
+            });
         }
 
         // ── Init ──

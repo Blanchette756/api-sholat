@@ -4,7 +4,7 @@ import logging
 import io
 from datetime import date, datetime, timedelta, timezone
 
-from flask import Flask, request, jsonify, send_from_directory, abort, Response
+from flask import Flask, request, jsonify, send_from_directory, abort, Response, redirect, make_response
 from flask_cors import CORS
 from dotenv import load_dotenv
 
@@ -41,6 +41,37 @@ JWT_SECRET = os.environ.get('JWT_SECRET', '')
 if not JWT_SECRET:
     logger.warning("JWT_SECRET tidak di-set. Admin login akan gagal.")
 
+ADMIN_COOKIE = 'reve_admin'
+
+
+def set_admin_cookie(response, token):
+    """Set HTTP-only admin session cookie."""
+    response.set_cookie(
+        ADMIN_COOKIE,
+        token,
+        httponly=True,
+        secure=True,
+        samesite='Strict',
+        max_age=12 * 3600,
+        path='/',
+    )
+    return response
+
+
+def verify_admin_cookie():
+    """Verify admin JWT from cookie (server-side page guarding)."""
+    if not _has_jwt or not JWT_SECRET:
+        return False
+    token = request.cookies.get(ADMIN_COOKIE, '')
+    if not token:
+        return False
+    try:
+        payload = pyjwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+        return payload.get('role') == 'admin'
+    except Exception:
+        return False
+
+
 WITA = timezone(timedelta(hours=8))
 
 PRAYER_ORDER = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya']
@@ -62,7 +93,7 @@ def get_wita_date_str():
     return get_wita_now().strftime('%Y-%m-%d')
 
 
-def is_prayer_in_window(prayer_id, tolerance_minutes=30):
+def is_prayer_in_window(prayer_id, tolerance_minutes=60):
     if prayer_id not in PRAYER_TIMES_APPROX:
         return False
     h, m = PRAYER_TIMES_APPROX[prayer_id]
@@ -72,9 +103,11 @@ def is_prayer_in_window(prayer_id, tolerance_minutes=30):
     idx = PRAYER_ORDER.index(prayer_id)
     if idx < len(PRAYER_ORDER) - 1:
         nh, nm = PRAYER_TIMES_APPROX[PRAYER_ORDER[idx + 1]]
-        end_mins = nh * 60 + nm
+        # extend end window by tolerance so users can still check just after next prayer starts
+        end_mins = nh * 60 + nm + tolerance_minutes
     else:
         end_mins = 23 * 60 + 59
+    # Hanya boleh checklist SETELAH waktu sholat masuk (tidak boleh early check)
     return start_mins <= now_mins < end_mins
 
 
@@ -109,7 +142,7 @@ else:
 
 db_manager = Database()
 
-ALLOWED_STATIC = {'index.html', 'login.html', 'style.css', 'admin-login.html', 'admin.html'}
+ALLOWED_STATIC = {'index.html', 'login.html', 'style.css', 'admin-login.html'}
 
 
 @app.after_request
@@ -166,6 +199,14 @@ def ping():
     return jsonify({"status": "ok"}), 200
 
 
+
+@app.route('/admin.html')
+def admin_page():
+    # Serve admin.html only if a valid admin cookie is present
+    if not verify_admin_cookie():
+        return redirect('/admin-login.html')
+    return send_from_directory('.', 'admin.html')
+
 @app.route('/')
 def index():
     return send_from_directory('.', 'login.html')
@@ -209,11 +250,7 @@ def check_prayer():
         nama = user.get('name', email)
         tanggal = get_wita_date_str()
 
-        existing = db_manager.get_today_status(uid, tanggal)
-        if existing.get('finalized'):
-            return jsonify({"status": "error", "message": "Sudah dikirim hari ini"}), 409
-
-        tolerance = db_manager.get_settings().get('tolerance_minutes', 30)
+        tolerance = db_manager.get_settings().get('tolerance_minutes', 60)
         if checked and not is_prayer_in_window(prayer, tolerance):
             return jsonify({"status": "error", "message": "Di luar waktu sholat"}), 403
 
@@ -235,7 +272,15 @@ def get_today():
             return jsonify({"status": "error", "message": "Login dulu"}), 401
 
         uid = user.get('uid', '')
-        tanggal = get_wita_date_str()
+        # Terima date param opsional (untuk recap EOD tengah malam → ambil data kemarin)
+        date_param = request.args.get('date', '').strip()
+        if date_param:
+            import re
+            if not re.match(r'^\d{4}-\d{2}-\d{2}$', date_param):
+                return jsonify({"status": "error", "message": "Format tanggal tidak valid"}), 400
+            tanggal = date_param
+        else:
+            tanggal = get_wita_date_str()
         status = db_manager.get_today_status(uid, tanggal)
         return jsonify(status)
     except Exception as e:
@@ -255,9 +300,6 @@ def finalize():
         tanggal = get_wita_date_str()
 
         status = db_manager.get_today_status(uid, tanggal)
-        if status.get('finalized'):
-            return jsonify({"status": "error", "message": "Sudah dikirim hari ini"}), 409
-
         sholat = status.get('sholat', {})
         total = sum(1 for v in sholat.values() if v)
         if total == 0:
@@ -330,17 +372,41 @@ def admin_login():
             algorithm="HS256",
         )
         logger.info("Admin login berhasil")
-        return jsonify({"status": "success", "token": token})
+        resp = make_response(jsonify({"status": "success", "token": token}))
+        set_admin_cookie(resp, token)
+        return resp
     logger.warning("Admin login gagal: username=%s", username)
     return jsonify({"status": "error", "message": "Username atau password salah"}), 401
 
 
 @app.route('/admin/verify', methods=['GET'])
+@_rate_limit("20 per minute")
 def admin_verify():
     if verify_admin():
         return jsonify({"status": "ok"})
     return jsonify({"status": "error"}), 401
 
+
+@app.route('/admin/logout', methods=['POST'])
+def admin_logout():
+    resp = make_response(jsonify({"status": "ok"}))
+    resp.delete_cookie(ADMIN_COOKIE, path='/')
+    logger.info("Admin logout")
+    return resp
+
+@app.route('/api/statistik', methods=['GET'])
+def get_statistik():
+    if not verify_admin():
+        return jsonify({"status": "error", "message": "Unauthorized"}), 401
+    try:
+        # Rentang waktu default disesuaikan dengan tanggal sosialisasi
+        start_date = request.args.get('start', '2026-05-12')
+        end_date = request.args.get('end', '2026-05-18')
+        data = db_manager.get_statistik_lomba(start_date=start_date, end_date=end_date)
+        return jsonify({"status": "success", "data": data})
+    except Exception as e:
+        logger.exception("Error /api/statistik: %s", e)
+        return jsonify({"status": "error", "message": "Gagal mengambil data"}), 500
 
 @app.route('/api/settings', methods=['GET'])
 def get_settings():
@@ -349,7 +415,7 @@ def get_settings():
         return jsonify(settings)
     except Exception as e:
         logger.exception("Error get settings: %s", e)
-        return jsonify({"tolerance_minutes": 30})
+        return jsonify({"tolerance_minutes": 60})
 
 
 @app.route('/api/settings', methods=['POST'])
@@ -360,8 +426,8 @@ def update_settings():
     if not data:
         return jsonify({"status": "error", "message": "Data tidak valid"}), 400
     minutes = data.get('tolerance_minutes')
-    if minutes not in (30, 60):
-        return jsonify({"status": "error", "message": "Toleransi harus 30 atau 60"}), 400
+    if minutes not in (60, 120):
+        return jsonify({"status": "error", "message": "Toleransi harus 60 atau 120 menit"}), 400
     if db_manager.update_tolerance(minutes):
         logger.info("Toleransi diubah ke %d menit", minutes)
         return jsonify({"status": "success", "message": f"Toleransi diubah ke {minutes} menit"})
@@ -386,6 +452,89 @@ def get_students():
         return jsonify({"status": "error", "message": "Gagal mengambil data"}), 500
 
 
+# ── Public Scoreboard (hari ini, semua user login) ──
+
+@app.route('/api/scoreboard', methods=['GET'])
+@_rate_limit("30 per minute")
+def get_scoreboard():
+    try:
+        user = verify_token()
+        if not user:
+            return jsonify({"status": "error", "message": "Login dulu"}), 401
+        tanggal = get_wita_date_str()
+        data = db_manager.get_today_scoreboard(tanggal)
+        return jsonify({"status": "success", "data": data, "tanggal": tanggal})
+    except Exception as e:
+        logger.exception("Error /api/scoreboard: %s", e)
+        return jsonify({"status": "error", "message": "Gagal mengambil data"}), 500
+
+
+# ── Save end-of-day reason ──
+
+@app.route('/sholat/reason', methods=['POST'])
+@_rate_limit("5 per minute")
+def save_reason():
+    try:
+        user = verify_token()
+        if not user:
+            return jsonify({"status": "error", "message": "Login dulu"}), 401
+        data = request.get_json(silent=True)
+        if not data:
+            return jsonify({"status": "error", "message": "Data tidak valid"}), 400
+        reason = data.get('reason', '').strip()
+        if not reason:
+            return jsonify({"status": "error", "message": "Alasan tidak boleh kosong"}), 400
+        uid = user.get('uid', '')
+        # Gunakan date param jika ada (untuk EOD tengah malam → simpan ke tanggal kemarin)
+        date_param = data.get('date', '').strip()
+        if date_param:
+            import re
+            if re.match(r'^\d{4}-\d{2}-\d{2}$', date_param):
+                tanggal = date_param
+            else:
+                tanggal = get_wita_date_str()
+        else:
+            tanggal = get_wita_date_str()
+        db_manager.save_reason(uid, tanggal, reason)
+        logger.info("Alasan disimpan uid=%s tanggal=%s", uid, tanggal)
+        return jsonify({"status": "success", "message": "Alasan berhasil disimpan"})
+    except Exception as e:
+        logger.exception("Error /sholat/reason: %s", e)
+        return jsonify({"status": "error", "message": "Terjadi kesalahan server"}), 500
+
+
+# ── Weekly report ──
+
+@app.route('/api/weekly', methods=['GET'])
+def get_weekly():
+    if not verify_admin():
+        return jsonify({"status": "error", "message": "Unauthorized"}), 401
+    try:
+        date_from = request.args.get('from', '')
+        date_to = request.args.get('to', '')
+        data = db_manager.get_weekly_summary(date_from=date_from, date_to=date_to)
+        return jsonify({"data": data})
+    except Exception as e:
+        logger.exception("Error /api/weekly: %s", e)
+        return jsonify({"status": "error", "message": "Gagal mengambil data"}), 500
+
+
+# ── Monthly report ──
+
+@app.route('/api/monthly', methods=['GET'])
+def get_monthly():
+    if not verify_admin():
+        return jsonify({"status": "error", "message": "Unauthorized"}), 401
+    try:
+        date_from = request.args.get('from', '')
+        date_to = request.args.get('to', '')
+        data = db_manager.get_monthly_summary(date_from=date_from, date_to=date_to)
+        return jsonify({"data": data})
+    except Exception as e:
+        logger.exception("Error /api/monthly: %s", e)
+        return jsonify({"status": "error", "message": "Gagal mengambil data"}), 500
+
+
 @app.route('/api/export', methods=['GET'])
 def export_excel():
     if not verify_admin():
@@ -399,7 +548,7 @@ def export_excel():
         wb = Workbook()
         ws = wb.active
         ws.title = "Laporan Sholat"
-        ws.append(["Nama", "Email", "Tanggal", "Subuh", "Dzuhur", "Ashar", "Maghrib", "Isya", "Status"])
+        ws.append(["Nama", "Email", "Tanggal", "Subuh", "Dzuhur", "Ashar", "Maghrib", "Isya", "Status", "Alasan"])
         for r in records:
             s = r.get("sholat", {})
             ws.append([
@@ -412,6 +561,7 @@ def export_excel():
                 "Ya" if s.get("maghrib") else "Tidak",
                 "Ya" if s.get("isya") else "Tidak",
                 "Selesai" if r.get("finalized") else "Belum",
+                r.get("alasan", ""),
             ])
         buf = io.BytesIO()
         wb.save(buf)

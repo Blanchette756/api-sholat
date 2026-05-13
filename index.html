@@ -42,14 +42,10 @@
             _wasAuthenticated = true;
             document.body.style.visibility = 'visible';
             window._userName = user.displayName || user.email || '';
+            // Pre-fill nama dari Google, bisa diubah user
             const namaInput = document.getElementById('nama');
-            if (namaInput) {
+            if (namaInput && !namaInput.value) {
                 namaInput.value = window._userName;
-                namaInput.readOnly = true;
-            }
-            const userPill = document.getElementById('user-pill');
-            if (userPill) {
-                userPill.textContent = '👤 ' + (user.displayName || user.email);
             }
             if (typeof window._onAuthReady === 'function') {
                 window._onAuthReady();
@@ -793,14 +789,31 @@
         }
 
         .prayer-item.locked {
-            opacity: 0.4;
+            opacity: 0.45;
             pointer-events: none;
             position: relative;
         }
+
+        /* Checked+locked: tampilkan centang tapi tetap redup */
+        .prayer-item.locked.checked {
+            opacity: 0.6;
+        }
+
         .prayer-item.locked .checkmark-box {
             background: #ddd;
             border-color: #ccc;
         }
+
+        .prayer-item.locked.checked .checkmark-box {
+            background: var(--teal-mid);
+            border-color: var(--teal-mid);
+        }
+
+        .prayer-item.locked.checked .checkmark-box svg {
+            opacity: 1;
+            transform: scale(1);
+        }
+
         .lock-badge {
             position: absolute;
             top: 6px;
@@ -813,7 +826,10 @@
             padding: 2px 7px;
             border-radius: 8px;
         }
-        .prayer-item.unlocked .lock-badge { display: none; }
+
+        .prayer-item.unlocked .lock-badge {
+            display: none;
+        }
 
         /* ──────────── DIVIDER ──────────── */
         .list-divider {
@@ -1038,6 +1054,100 @@
             transform: translateY(-1px);
             box-shadow: 0 6px 18px rgba(27, 107, 90, 0.35);
         }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .scoreboard-btn:hover {
+            background: rgba(196, 154, 60, 0.25) !important;
+            border-color: rgba(196, 154, 60, 0.5) !important;
+            transform: translateY(-1px);
+        }
+
+        .scoreboard-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Scoreboard rows */
+        .sb-row {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 11px 13px;
+            border-radius: 14px;
+            border: 1.5px solid var(--border);
+            background: var(--surface2);
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .sb-row.me {
+            border-color: var(--teal);
+            background: var(--teal-light);
+        }
+
+        .sb-row.rank-1 {
+            border-color: #d4a017;
+            background: #fffbef;
+        }
+
+        .sb-row.rank-2 {
+            border-color: #9e9e9e;
+            background: #f9f9f9;
+        }
+
+        .sb-row.rank-3 {
+            border-color: #b87333;
+            background: #fff8f4;
+        }
+
+        .sb-rank {
+            font-size: 18px;
+            width: 28px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .sb-name {
+            flex: 1;
+            font-size: 13.5px;
+            font-weight: 800;
+            color: var(--text);
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sb-count {
+            font-size: 13px;
+            font-weight: 900;
+            color: var(--teal);
+            flex-shrink: 0;
+        }
+
+        .sb-dots {
+            display: flex;
+            gap: 3px;
+            flex-shrink: 0;
+        }
+
+        .sb-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        .sb-dot.done {
+            background: var(--teal);
+        }
+
+        .sb-dot.miss {
+            background: var(--border-2);
+        }
     </style>
 </head>
 
@@ -1071,7 +1181,11 @@
                 </div>
             </div>
             <div class="header-meta" style="margin-top:8px">
-                <div class="meta-pill" id="user-pill">👤 ...</div>
+                <div class="meta-pill scoreboard-btn" id="btn-scoreboard" onclick="openScoreboard()"
+                    style="cursor:pointer; gap:6px;">
+                    <span>🏆</span>
+                    <span>Papan Skor</span>
+                </div>
                 <div class="meta-pill" style="cursor:pointer" onclick="window._firebaseSignOut()">🚪 Keluar</div>
             </div>
         </div>
@@ -1109,21 +1223,23 @@
         <div id="sholatForm" style="display:contents">
 
             <div class="form-card">
-                <p class="section-label">Identitas Agen</p>
+                <p class="section-label">Identitas Siswa</p>
                 <div class="input-wrap">
                     <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                         <circle cx="12" cy="7" r="4" />
                     </svg>
-                    <input type="text" id="nama" placeholder="Masukkan namamu..." autocomplete="off">
+                    <input type="text" id="nama" placeholder="Nama kamu..." autocomplete="off">
                 </div>
+                <div style="font-size:11px; color:var(--text3); margin-top:6px; padding-left:2px;">Nama diisi otomatis
+                    dari Google — bisa diubah jika perlu</div>
             </div>
 
             <div class="prayer-list">
                 <p class="section-label">Misi Sholat Hari Ini</p>
 
-                <div class="prayer-item" id="item-subuh" onclick="toggleItem('subuh')">
+                <div class="prayer-item locked" id="item-subuh" onclick="toggleItem('subuh')">
                     <input type="checkbox" id="subuh">
                     <div class="prayer-icon">🌙</div>
                     <div class="prayer-info">
@@ -1138,7 +1254,7 @@
                     <span class="lock-badge" id="lock-subuh">🔒</span>
                 </div>
 
-                <div class="prayer-item" id="item-dzuhur" onclick="toggleItem('dzuhur')">
+                <div class="prayer-item locked" id="item-dzuhur" onclick="toggleItem('dzuhur')">
                     <input type="checkbox" id="dzuhur">
                     <div class="prayer-icon">☀️</div>
                     <div class="prayer-info">
@@ -1153,7 +1269,7 @@
                     <span class="lock-badge" id="lock-dzuhur">🔒</span>
                 </div>
 
-                <div class="prayer-item" id="item-ashar" onclick="toggleItem('ashar')">
+                <div class="prayer-item locked" id="item-ashar" onclick="toggleItem('ashar')">
                     <input type="checkbox" id="ashar">
                     <div class="prayer-icon">🌤️</div>
                     <div class="prayer-info">
@@ -1168,7 +1284,7 @@
                     <span class="lock-badge" id="lock-ashar">🔒</span>
                 </div>
 
-                <div class="prayer-item" id="item-maghrib" onclick="toggleItem('maghrib')">
+                <div class="prayer-item locked" id="item-maghrib" onclick="toggleItem('maghrib')">
                     <input type="checkbox" id="maghrib">
                     <div class="prayer-icon">🌇</div>
                     <div class="prayer-info">
@@ -1183,7 +1299,7 @@
                     <span class="lock-badge" id="lock-maghrib">🔒</span>
                 </div>
 
-                <div class="prayer-item" id="item-isya" onclick="toggleItem('isya')">
+                <div class="prayer-item locked" id="item-isya" onclick="toggleItem('isya')">
                     <input type="checkbox" id="isya">
                     <div class="prayer-icon">🌃</div>
                     <div class="prayer-info">
@@ -1216,14 +1332,92 @@
 
     </div>
 
-    <!-- ══ COMPLETION OVERLAY ══ -->
-    <div class="modal-overlay" id="done-overlay" style="z-index:200">
-        <div class="modal-box" style="max-width:380px">
-            <span class="modal-icon">🌟</span>
-            <div class="modal-title">Alhamdulillah!</div>
-            <div class="modal-desc" id="done-message">Checklist hari ini sudah selesai. Kembali lagi besok ya!</div>
-            <div class="modal-buttons">
-                <button class="modal-btn modal-btn-confirm" onclick="window._firebaseSignOut()">Keluar</button>
+    <!-- ══ SCOREBOARD OVERLAY ══ -->
+    <div class="modal-overlay" id="scoreboard-overlay" onclick="if(event.target===this)closeScoreboard()"
+        style="z-index:300; align-items:flex-end; padding:0;">
+        <div id="scoreboard-sheet"
+            style="background:var(--surface); border-radius:24px 24px 0 0; width:100%; max-width:480px; margin:0 auto; padding:0; overflow:hidden; max-height:85vh; display:flex; flex-direction:column; transform:translateY(100%); transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);">
+            <!-- Handle -->
+            <div style="display:flex; justify-content:center; padding:12px 0 4px;">
+                <div style="width:36px; height:4px; border-radius:99px; background:var(--border-2);"></div>
+            </div>
+            <!-- Header -->
+            <div
+                style="padding:4px 20px 16px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; border-bottom:1px solid var(--border);">
+                <div>
+                    <div style="font-size:16px; font-weight:900; color:var(--text);">🏆 Papan Skor Hari Ini</div>
+                    <div style="font-size:11px; color:var(--text3); font-weight:600; margin-top:2px;"
+                        id="scoreboard-tanggal">Memuat...</div>
+                </div>
+                <button onclick="refreshScoreboard()" id="btn-refresh-scoreboard"
+                    style="background:var(--teal-light); border:none; border-radius:10px; padding:8px 12px; font-size:12px; font-weight:800; color:var(--teal); cursor:pointer; display:flex; align-items:center; gap:5px;">
+                    <span id="refresh-icon">↻</span> Refresh
+                </button>
+            </div>
+            <!-- Body scrollable -->
+            <div id="scoreboard-body" style="overflow-y:auto; flex:1; padding:14px 16px 24px;">
+                <div style="text-align:center; padding:30px; color:var(--text3); font-size:13px;">⏳ Memuat data...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ END-OF-DAY OVERLAY ══ -->
+    <div class="modal-overlay" id="done-overlay"
+        style="z-index:200; align-items:flex-start; overflow-y:auto; padding:20px 16px 40px;">
+        <div class="modal-box"
+            style="max-width:440px; width:100%; margin:auto; padding:0; overflow:hidden; border-radius:22px;">
+
+            <!-- Header strip -->
+            <div id="eod-header"
+                style="background:var(--teal); padding:28px 24px 22px; text-align:center; position:relative;">
+                <span style="font-size:42px; display:block; margin-bottom:10px;" id="eod-icon">🌙</span>
+                <div
+                    style="font-family:'Noto Serif',serif; font-size:20px; font-weight:700; color:#fff; margin-bottom:4px;">
+                    Rekap Sholat Hari Ini</div>
+                <div style="font-size:12px; color:rgba(255,255,255,0.7);" id="eod-tanggal"></div>
+                <div
+                    style="margin-top:14px; display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:20px; padding:6px 18px;">
+                    <span style="font-size:13px; font-weight:700; color:#fff;">Total: </span>
+                    <span style="font-size:20px; font-weight:900; color:#fff;" id="eod-total">0/5</span>
+                </div>
+            </div>
+
+            <!-- Prayer rows -->
+            <div style="background:var(--surface); padding:18px 20px 0;">
+                <div
+                    style="font-size:11px; font-weight:800; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">
+                    Status Sholat</div>
+                <div id="eod-prayer-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+            </div>
+
+            <!-- Reason section -->
+            <div id="eod-reason-section" style="background:var(--surface); padding:16px 20px 0; display:none;">
+                <div style="height:1px; background:var(--border); margin-bottom:16px;"></div>
+                <div
+                    style="font-size:11px; font-weight:800; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;">
+                    Catatan Alasan</div>
+                <div style="font-size:12.5px; color:var(--text2); margin-bottom:10px; line-height:1.6;">Ada sholat yang
+                    terlewat hari ini. Tuliskan alasannya sebagai catatan untuk guru:</div>
+                <textarea id="eod-reason-input"
+                    placeholder="Contoh: Ketiduran saat subuh, sedang dalam perjalanan saat ashar..."
+                    style="width:100%; min-height:90px; padding:12px 14px; border:1.5px solid var(--border); border-radius:var(--r-sm); background:var(--surface2); font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; font-weight:500; color:var(--text); outline:none; resize:vertical; transition:border-color 0.2s; line-height:1.6;"
+                    onfocus="this.style.borderColor='var(--teal)'; this.style.boxShadow='0 0 0 3px rgba(27,107,90,0.10)'"
+                    onblur="this.style.borderColor=''; this.style.boxShadow=''"></textarea>
+                <div id="eod-reason-status" style="margin-top:6px; font-size:12px; font-weight:700; display:none;">
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div
+                style="background:var(--surface); padding:16px 20px 22px; display:flex; flex-direction:column; gap:8px;">
+                <button id="eod-submit-btn" onclick="submitEODReason()"
+                    style="display:none; width:100%; padding:14px; background:var(--teal); color:#fff; border:none; border-radius:var(--r-sm); font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:800; cursor:pointer; transition:all 0.22s ease; box-shadow:0 4px 16px rgba(27,107,90,0.25);">
+                    📝 Simpan Alasan & Selesai
+                </button>
+                <button onclick="window._firebaseSignOut()"
+                    style="width:100%; padding:13px; background:var(--teal-light); color:var(--teal); border:none; border-radius:var(--r-sm); font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; font-weight:800; cursor:pointer; transition:all 0.22s ease;">
+                    Keluar →
+                </button>
             </div>
         </div>
     </div>
@@ -1267,14 +1461,14 @@
 
         let prayerTimes = null;
         let countdownInterval = null;
-        let toleranceMinutes = 30;
+        let toleranceMinutes = 60;
 
         async function fetchTolerance() {
             try {
                 const res = await fetch('/api/settings');
                 const data = await res.json();
                 toleranceMinutes = data.tolerance_minutes || 30;
-            } catch (e) {}
+            } catch (e) { }
         }
 
         // ══════════════════════════════════════════════
@@ -1304,66 +1498,64 @@
                     fetchPrayerTimesFromAPI();
                     return;
                 }
-            } catch (e) {}
+            } catch (e) { }
             await fetchPrayerTimesFromAPI();
         }
 
+        const FALLBACK_TIMES = { subuh: '04:28', dzuhur: '12:06', ashar: '15:18', maghrib: '18:13', isya: '19:22' };
+
+        function applyPrayerTimes() {
+            renderSchedule();
+            updatePrayerTimeTexts();
+            startCountdown();
+            updateLockState();
+        }
+
         async function fetchPrayerTimesFromAPI() {
+            // Pasang fallback DULU supaya UI tidak stuck "Memuat..."
+            if (!prayerTimes) {
+                prayerTimes = { ...FALLBACK_TIMES };
+                applyPrayerTimes();
+            }
             try {
                 const today = new Date();
                 const dd = String(today.getDate()).padStart(2, '0');
                 const mm = String(today.getMonth() + 1).padStart(2, '0');
                 const yyyy = today.getFullYear();
-                const dateStr = `${dd}-${mm}-${yyyy}`;
-
-                const url = `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${LAT}&longitude=${LON}&method=11&tune=0,2,2,2,2,2,2,2,2`;
+                const url = `https://api.aladhan.com/v1/timings/${dd}-${mm}-${yyyy}?latitude=${LAT}&longitude=${LON}&method=11&tune=0,2,2,2,2,2,2,2,2`;
                 const res = await fetchWithRetry(url);
                 const json = await res.json();
-
                 if (json.code === 200) {
                     const t = json.data.timings;
                     prayerTimes = {
-                        subuh: formatTime(t.Fajr),
-                        dzuhur: formatTime(t.Dhuhr),
-                        ashar: formatTime(t.Asr),
-                        maghrib: formatTime(t.Maghrib),
-                        isya: formatTime(t.Isha)
+                        subuh: formatTime(t.Fajr), dzuhur: formatTime(t.Dhuhr),
+                        ashar: formatTime(t.Asr), maghrib: formatTime(t.Maghrib), isya: formatTime(t.Isha)
                     };
                     try {
                         localStorage.setItem('prayerTimesCache', JSON.stringify({
-                            _date: getCurrentWITA().toDateString(),
-                            times: prayerTimes
+                            _date: getCurrentWITA().toDateString(), times: prayerTimes
                         }));
-                    } catch (e) {}
-                    renderSchedule();
-                    updatePrayerTimeTexts();
-                    startCountdown();
-                    updateLockState();
+                    } catch (e) { }
+                    applyPrayerTimes();
                 }
             } catch (e) {
-                if (!prayerTimes) {
-                    prayerTimes = {
-                        subuh: '04:28', dzuhur: '12:06', ashar: '15:18',
-                        maghrib: '18:13', isya: '19:22'
-                    };
-                    renderSchedule();
-                    updatePrayerTimeTexts();
-                    startCountdown();
-                    updateLockState();
-                }
+                console.warn('Aladhan API gagal, pakai fallback:', e && e.message);
             }
         }
 
         async function fetchWithRetry(url, retries = 2) {
+            let lastErr;
             for (let i = 0; i <= retries; i++) {
                 try {
                     const res = await fetch(url);
                     if (res.ok) return res;
+                    lastErr = new Error('HTTP ' + res.status);
                 } catch (e) {
-                    if (i === retries) throw e;
+                    lastErr = e;
                 }
-                await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+                if (i < retries) await new Promise(r => setTimeout(r, 1000 * (i + 1)));
             }
+            throw lastErr;
         }
 
         function formatTime(t) {
@@ -1473,7 +1665,10 @@
             countdownEl.textContent =
                 String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
 
-            if (s === 0) renderSchedule();
+            if (s === 0) {
+                renderSchedule();
+                updateLockState();
+            }
         }
 
         // ══════════════════════════════════════════════
@@ -1501,7 +1696,25 @@
         // ══════════════════════════════════════════════
         async function toggleItem(id) {
             const item = document.getElementById('item-' + id);
-            if (item.classList.contains('locked')) return;
+            if (item.classList.contains('locked')) {
+                if (!prayerTimes) return;
+                const now = getCurrentWITA();
+                const nowMins = now.getHours() * 60 + now.getMinutes();
+                const [h, m] = prayerTimes[id].split(':').map(Number);
+                const startMins = h * 60 + m;
+                const endMins = startMins + toleranceMinutes;
+                let msg;
+                if (nowMins < startMins) {
+                    msg = `⏳ Waktu ${PRAYER_LABELS[id]} belum masuk (${prayerTimes[id]} WITA)`;
+                } else if (nowMins >= endMins) {
+                    msg = `🔒 Waktu ${PRAYER_LABELS[id]} sudah lewat`;
+                } else {
+                    msg = `🔒 ${PRAYER_LABELS[id]} tidak bisa diubah`;
+                }
+                showMsg(msg, 'error');
+                setTimeout(() => document.getElementById('pesan-server').classList.add('hidden'), 2500);
+                return;
+            }
             const cb = document.getElementById(id);
             const newState = !cb.checked;
 
@@ -1539,8 +1752,26 @@
             }
         }
 
+        // ── EOD Period: 22:00 malam sampai sebelum waktu subuh ──
+        // Mencakup: 22:00-23:59 DAN 00:00-04:xx (tengah malam sampai subuh)
+        function isEODPeriod() {
+            const now = getCurrentWITA();
+            const nowMins = now.getHours() * 60 + now.getMinutes();
+            // Setelah jam 22:00 malam
+            if (nowMins >= 22 * 60) return true;
+            // Sebelum subuh — gunakan prayer times jika sudah ada, fallback 04:00
+            let subuhOpenMins = 4 * 60; // fallback aman
+            if (prayerTimes && prayerTimes.subuh) {
+                const [sh, sm] = prayerTimes.subuh.split(':').map(Number);
+                subuhOpenMins = sh * 60 + sm; // buka tepat waktu subuh (toleransi akan ditambah di isPrayerUnlocked)
+            }
+            if (nowMins < subuhOpenMins) return true;
+            return false;
+        }
+
         function isPrayerUnlocked(prayerId) {
             if (!prayerTimes) return false;
+            if (isEODPeriod()) return false;
             const now = getCurrentWITA();
             const nowMins = now.getHours() * 60 + now.getMinutes();
             const [h, m] = prayerTimes[prayerId].split(':').map(Number);
@@ -1548,8 +1779,9 @@
             const idx = prayers.indexOf(prayerId);
             let endMins;
             if (idx < prayers.length - 1) {
-                const [nh, nm] = prayerTimes[prayers[idx + 1]].split(':').map(Number);
-                endMins = nh * 60 + nm;
+                const nextPrayer = prayers[idx + 1];
+                const [nh, nm] = prayerTimes[nextPrayer].split(':').map(Number);
+                endMins = nh * 60 + nm + toleranceMinutes;
             } else {
                 endMins = 23 * 60 + 59;
             }
@@ -1557,7 +1789,15 @@
         }
 
         function updateLockState() {
+            // ── EOD: 22:00 malam hingga sebelum subuh ──
+            if (isEODPeriod()) {
+                showDoneScreen();
+                return;
+            }
+
+            // Sebelum prayerTimes siap, tidak bisa tentukan per-prayer lock
             if (!prayerTimes) return;
+
             prayers.forEach(p => {
                 const item = document.getElementById('item-' + p);
                 const lockBadge = document.getElementById('lock-' + p);
@@ -1567,14 +1807,9 @@
                     item.classList.add('unlocked');
                     if (lockBadge) lockBadge.style.display = 'none';
                 } else {
-                    if (!document.getElementById(p).checked) {
-                        item.classList.add('locked');
-                        item.classList.remove('unlocked');
-                        if (lockBadge) lockBadge.style.display = '';
-                    } else {
-                        item.classList.remove('locked');
-                        if (lockBadge) lockBadge.style.display = 'none';
-                    }
+                    item.classList.add('locked');
+                    item.classList.remove('unlocked');
+                    if (lockBadge) lockBadge.style.display = '';
                 }
             });
         }
@@ -1585,31 +1820,43 @@
             document.getElementById('progress-fill').style.width = (checked / 5 * 100) + '%';
         }
 
-        function allPrayersPassed() {
-            if (!prayerTimes) return false;
-            const now = getCurrentWITA();
-            const nowMins = now.getHours() * 60 + now.getMinutes();
-            const [h, m] = prayerTimes.isya.split(':').map(Number);
-            const isyaEnd = h * 60 + m + toleranceMinutes;
-            return nowMins >= isyaEnd;
-        }
 
         // ══════════════════════════════════════════════
         // FETCH TODAY STATUS FROM SERVER
         // ══════════════════════════════════════════════
-        async function fetchTodayStatus() {
+        // Kembalikan tanggal WITA yang harus di-review di EOD screen.
+        // Kalau tengah malam (00:00-sebelum subuh) → kembalikan tanggal kemarin
+        // karena rekap yang ditampilkan adalah sholat hari sebelumnya.
+        function getReviewDate() {
+            const now = getCurrentWITA();
+            const nowMins = now.getHours() * 60 + now.getMinutes();
+            const isMidnightWindow = nowMins < 22 * 60; // 00:00-21:59 → masuk jendela sebelum subuh (sudah dicek isEODPeriod)
+            if (isMidnightWindow) {
+                // Ambil tanggal kemarin WITA
+                const yesterday = new Date(now.getTime() - 24 * 3600000);
+                return yesterday.toISOString().slice(0, 10);
+            }
+            return now.toISOString().slice(0, 10);
+        }
+
+        async function fetchTodayStatus(skipLockUpdate = false) {
             try {
                 const token = await window._getIdToken();
                 if (!token) return;
-                const res = await fetch('/sholat/today', {
+
+                // Tentukan tanggal yang akan di-fetch:
+                // Kalau kita di EOD tengah malam (00:xx sebelum subuh) → ambil data kemarin
+                const reviewDate = skipLockUpdate ? getReviewDate() : null;
+                const url = reviewDate
+                    ? `/sholat/today?date=${reviewDate}`
+                    : '/sholat/today';
+
+                const res = await fetch(url, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
                 const data = await res.json();
 
-                if (data.finalized && allPrayersPassed()) {
-                    showDoneScreen('Checklist hari ini sudah selesai.\nKembali lagi besok ya!');
-                    return;
-                }
+                // Populate checkbox state from server
                 const sholat = data.sholat || {};
                 prayers.forEach(p => {
                     const cb = document.getElementById(p);
@@ -1623,12 +1870,15 @@
                     }
                 });
                 updateProgress();
+
+                if (skipLockUpdate) return; // caller will handle screen routing
+
+                // Normal flow: apply lock state & show UI hints
                 updateLockState();
                 if (data.finalized) {
+                    showMsg('ℹ️ Laporan sudah pernah dikirim. Bisa diperbarui lagi.', 'success');
                     const btn = document.getElementById('btn-submit');
-                    btn.disabled = true;
-                    btn.innerHTML = '✅ Laporan sudah terkirim';
-                    showMsg('Laporan hari ini sudah dikirim.', 'success');
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Perbarui Laporan`;
                 }
             } catch (e) {
                 // Offline — no server state to load
@@ -1666,6 +1916,8 @@
             document.getElementById('confirm-modal').classList.remove('show');
         }
 
+        let isFinalized = false;
+
         async function confirmSubmit() {
             closeModal();
 
@@ -1697,21 +1949,27 @@
                 });
                 clearTimeout(timeout);
                 const data = await res.json();
+                clearInterval(ticker);
                 if (data.status === 'success') {
                     const total = prayers.filter(p => document.getElementById(p).checked).length;
-                    showDoneScreen('Laporan sholat berhasil dikirim! (' + total + '/5)\nSampai jumpa besok!');
+                    showMsg('✅ Laporan berhasil dikirim! (' + total + '/5)', 'success');
+                    setTimeout(() => document.getElementById('pesan-server').classList.add('hidden'), 4000);
+                    // Re-enable button with "update" label so user can re-send after checking more prayers
+                    btn.disabled = false;
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Perbarui Laporan`;
                 } else {
                     showMsg(data.message || 'Gagal mengirim', 'error');
+                    resetBtn();
                 }
             } catch (e) {
+                clearInterval(ticker);
                 if (e.name === 'AbortError') {
                     showMsg('Server terlalu lama merespons (>20s). Coba lagi.', 'error');
                 } else {
                     showMsg('Koneksi gagal! Cek internetmu.', 'error');
                 }
+                resetBtn();
             }
-            clearInterval(ticker);
-            resetBtn();
         }
 
         function resetBtn() {
@@ -1732,25 +1990,331 @@
             d.classList.remove('hidden');
         }
 
-        function showDoneScreen(msg) {
-            document.getElementById('done-message').textContent = msg;
+        function showDoneScreen() {
+            // Build EOD summary from current checkbox state
+            const PRAYER_ICONS_EOD = { subuh: '🌙', dzuhur: '☀️', ashar: '🌤️', maghrib: '🌇', isya: '🌃' };
+            const sholat = {};
+            prayers.forEach(p => { sholat[p] = document.getElementById(p).checked; });
+            const total = prayers.filter(p => sholat[p]).length;
+            const allDone = total === 5;
+
+            // Header icon & color
+            const eodHeader = document.getElementById('eod-header');
+            if (allDone) {
+                document.getElementById('eod-icon').textContent = '🌟';
+                eodHeader.style.background = 'linear-gradient(135deg, var(--teal) 0%, var(--teal-2) 100%)';
+            } else {
+                document.getElementById('eod-icon').textContent = total >= 3 ? '🌙' : '😔';
+                eodHeader.style.background = 'linear-gradient(135deg, #1a4a3e 0%, var(--teal) 100%)';
+            }
+
+            // Tanggal — gunakan review date (kemarin jika tengah malam sebelum subuh)
+            const reviewDateStr = getReviewDate(); // format YYYY-MM-DD
+            const reviewDate = new Date(reviewDateStr + 'T12:00:00+08:00'); // parse as WITA
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+            document.getElementById('eod-tanggal').textContent =
+                days[reviewDate.getDay()] + ', ' + reviewDate.getDate() + ' ' + months[reviewDate.getMonth()] + ' ' + reviewDate.getFullYear();
+
+            // Total
+            document.getElementById('eod-total').textContent = total + '/5';
+
+            // Prayer rows
+            let html = '';
+            prayers.forEach(p => {
+                const done = sholat[p];
+                html += `<div style="display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:var(--r-sm); border:1.5px solid ${done ? 'var(--teal)' : 'var(--border)'}; background:${done ? 'var(--teal-light)' : 'var(--surface2)'};">
+                    <span style="font-size:18px;">${PRAYER_ICONS_EOD[p]}</span>
+                    <span style="flex:1; font-size:13.5px; font-weight:800; color:${done ? 'var(--teal)' : 'var(--text3)'};">${PRAYER_LABELS[p]}</span>
+                    <span style="font-size:16px;">${done ? '✅' : '❌'}</span>
+                    <span style="font-size:11px; font-weight:700; padding:3px 9px; border-radius:10px; background:${done ? 'var(--teal)' : 'rgba(160,120,48,0.15)'}; color:${done ? '#fff' : 'var(--gold)'};">${done ? 'Sholat' : 'Terlewat'}</span>
+                </div>`;
+            });
+            document.getElementById('eod-prayer-list').innerHTML = html;
+
+            // Reason section
+            const reasonSection = document.getElementById('eod-reason-section');
+            const submitBtn = document.getElementById('eod-submit-btn');
+            if (!allDone) {
+                reasonSection.style.display = 'block';
+                submitBtn.style.display = 'block';
+            } else {
+                reasonSection.style.display = 'none';
+                submitBtn.style.display = 'none';
+            }
+
             document.getElementById('done-overlay').classList.add('show');
+        }
+
+        async function submitEODReason() {
+            const reason = document.getElementById('eod-reason-input').value.trim();
+            const statusEl = document.getElementById('eod-reason-status');
+            const btn = document.getElementById('eod-submit-btn');
+
+            if (!reason) {
+                statusEl.textContent = '⚠️ Tulis alasan dulu ya';
+                statusEl.style.color = '#A03030';
+                statusEl.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Menyimpan...';
+            statusEl.style.display = 'none';
+
+            try {
+                const token = await window._getIdToken();
+                const res = await fetch('/sholat/reason', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ reason, date: getReviewDate() }),
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    btn.textContent = '✅ Alasan Tersimpan';
+                    btn.style.background = 'var(--teal-mid)';
+                    statusEl.textContent = 'Terima kasih sudah jujur! 🙏';
+                    statusEl.style.color = 'var(--teal)';
+                    statusEl.style.display = 'block';
+                    // Switch to keluar only
+                    setTimeout(() => { btn.style.display = 'none'; }, 1500);
+                } else {
+                    btn.textContent = '📝 Simpan Alasan & Selesai';
+                    btn.disabled = false;
+                    statusEl.textContent = '❌ Gagal menyimpan, coba lagi';
+                    statusEl.style.color = '#A03030';
+                    statusEl.style.display = 'block';
+                }
+            } catch (e) {
+                btn.textContent = '📝 Simpan Alasan & Selesai';
+                btn.disabled = false;
+                statusEl.textContent = '❌ Koneksi gagal';
+                statusEl.style.color = '#A03030';
+                statusEl.style.display = 'block';
+            }
+        }
+
+        // ══════════════════════════════════════════════
+        // SCOREBOARD
+        // ══════════════════════════════════════════════
+        const PRAYER_ICONS_SB = { subuh: '🌙', dzuhur: '☀️', ashar: '🌤️', maghrib: '🌇', isya: '🌃' };
+        const PRAYERS_ORDER = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
+        const RANK_ICONS = ['🥇', '🥈', '🥉'];
+
+        function openScoreboard() {
+            const overlay = document.getElementById('scoreboard-overlay');
+            const sheet = document.getElementById('scoreboard-sheet');
+            overlay.classList.add('show');
+            // Trigger slide-up animation
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    sheet.style.transform = 'translateY(0)';
+                });
+            });
+            refreshScoreboard();
+        }
+
+        function closeScoreboard() {
+            const sheet = document.getElementById('scoreboard-sheet');
+            sheet.style.transform = 'translateY(100%)';
+            setTimeout(() => {
+                document.getElementById('scoreboard-overlay').classList.remove('show');
+            }, 350);
+        }
+
+        async function refreshScoreboard() {
+            const body = document.getElementById('scoreboard-body');
+            const refreshIcon = document.getElementById('refresh-icon');
+            const btnRefresh = document.getElementById('btn-refresh-scoreboard');
+            refreshIcon.style.display = 'inline-block';
+            refreshIcon.style.animation = 'spin 0.7s linear infinite';
+            btnRefresh.disabled = true;
+
+            body.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px;">⏳ Memuat data...</div>';
+
+            try {
+                const token = await window._getIdToken();
+                const res = await fetch('/api/scoreboard', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const json = await res.json();
+                if (json.status === 'success') {
+                    renderScoreboard(json.data, json.tanggal);
+                } else {
+                    body.innerHTML = '<div style="text-align:center;padding:30px;color:#A03030;font-size:13px;">❌ Gagal memuat data</div>';
+                }
+            } catch (e) {
+                body.innerHTML = '<div style="text-align:center;padding:30px;color:#A03030;font-size:13px;">❌ Koneksi gagal</div>';
+            }
+
+            refreshIcon.style.animation = '';
+            btnRefresh.disabled = false;
+        }
+
+        function renderScoreboard(data, tanggal) {
+            // Format tanggal
+            const d = new Date(tanggal + 'T12:00:00+08:00');
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+            document.getElementById('scoreboard-tanggal').textContent =
+                days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+
+            const myUid = window._firebaseAuth && window._firebaseAuth.currentUser
+                ? window._firebaseAuth.currentUser.uid : '';
+
+            if (!data || data.length === 0) {
+                document.getElementById('scoreboard-body').innerHTML =
+                    '<div style="text-align:center;padding:40px 20px;"><div style="font-size:36px;margin-bottom:10px;">📋</div><div style="color:var(--text3);font-size:13px;font-weight:600;">Belum ada yang laporan hari ini</div></div>';
+                return;
+            }
+
+            // Summary bar
+            const total = data.length;
+            const perfect = data.filter(r => r.total === 5).length;
+
+            let html = `<div style="display:flex;gap:8px;margin-bottom:14px;">
+                <div style="flex:1;background:var(--teal-light);border-radius:12px;padding:10px 12px;text-align:center;">
+                    <div style="font-size:18px;font-weight:900;color:var(--teal);">${total}</div>
+                    <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Peserta</div>
+                </div>
+                <div style="flex:1;background:#fffbef;border-radius:12px;padding:10px 12px;text-align:center;border:1px solid rgba(212,160,23,0.2);">
+                    <div style="font-size:18px;font-weight:900;color:#b8860b;">${perfect}</div>
+                    <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">5/5 Sholat</div>
+                </div>
+                <div style="flex:1;background:var(--surface2);border-radius:12px;padding:10px 12px;text-align:center;border:1px solid var(--border);">
+                    <div style="font-size:18px;font-weight:900;color:var(--teal);">${data.length > 0 ? Math.round(data.reduce((s, r) => s + r.total, 0) / data.length * 10) / 10 : 0}</div>
+                    <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;">Rata-rata</div>
+                </div>
+            </div>`;
+
+            data.forEach((row, i) => {
+                const rankIcon = i < 3 ? RANK_ICONS[i] : (i + 1) + '.';
+                const isMe = row.uid === myUid;
+                let cls = 'sb-row';
+                if (isMe) cls += ' me';
+                else if (i === 0) cls += ' rank-1';
+                else if (i === 1) cls += ' rank-2';
+                else if (i === 2) cls += ' rank-3';
+
+                const dots = PRAYERS_ORDER.map(p =>
+                    `<div class="sb-dot ${row.sholat[p] ? 'done' : 'miss'}" title="${p}"></div>`
+                ).join('');
+
+                const pct = Math.round(row.total / 5 * 100);
+                const barColor = row.total === 5 ? 'var(--teal)' :
+                    row.total >= 3 ? 'var(--gold-2)' : '#e06060';
+
+                html += `<div class="${cls}">
+                    <span class="sb-rank">${rankIcon}</span>
+                    <div style="flex:1;min-width:0;">
+                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">
+                            <span class="sb-name">${row.nama || '—'}${isMe ? ' <span style="font-size:10px;background:var(--teal);color:#fff;padding:1px 6px;border-radius:8px;font-weight:700;">Kamu</span>' : ''}</span>
+                            <span class="sb-count">${row.total}/5</span>
+                        </div>
+                        <div style="height:5px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:4px;">
+                            <div style="height:100%;width:${pct}%;background:${barColor};border-radius:99px;transition:width 0.6s ease;"></div>
+                        </div>
+                        <div class="sb-dots">${dots}</div>
+                    </div>
+                </div>`;
+            });
+
+            document.getElementById('scoreboard-body').innerHTML = html;
         }
 
         // ══════════════════════════════════════════════
         // INIT
         // ══════════════════════════════════════════════
-        fetch('/ping').catch(() => {});
+        fetch('/ping').catch(() => { });
         fetchTolerance();
         fetchPrayerTimes();
         updateProgress();
 
-        window._onAuthReady = function () {
+        window._onAuthReady = async function () {
+            await verifikasiRekapKemarin();
             fetchTodayStatus();
         };
 
-        setInterval(updateLockState, 30000);
-    </script>
-</body>
+        async function verifikasiRekapKemarin() {
+            const now = getCurrentWITA();
+            const yesterday = new Date(now.getTime() - 24 * 3600000);
+            const yesterdayStr = yesterday.toISOString().slice(0, 10);
 
-</html>
+            // Cek apakah siswa sudah mengkonfirmasi rekap hari kemarin di sesi peramban ini
+            if (localStorage.getItem('rekap_selesai_' + yesterdayStr)) return;
+
+            try {
+                const token = await window._getIdToken();
+                const res = await fetch(`/sholat/today?date=${yesterdayStr}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+
+                let sholat = data.sholat || {};
+                let total = Object.values(sholat).filter(Boolean).length;
+
+                // Skip if no data for yesterday (new user or never used)
+                if (total === 0 && !data.finalized) return;
+                // Skip if all prayers done (no reason needed)
+                if (total === 5) {
+                    localStorage.setItem('rekap_selesai_' + yesterdayStr, 'true');
+                    return;
+                }
+
+                if (!data.alasan) {
+                    tampilkanModalRekapKewajiban(sholat, total, yesterdayStr);
+                }
+            } catch (e) {
+                console.error("Gagal memverifikasi rekap kemarin");
+            }
+        }
+
+        function tampilkanModalRekapKewajiban(sholat, total, tanggalStr) {
+            const overlay = document.getElementById('done-overlay');
+            const header = document.getElementById('eod-header');
+            const reasonSection = document.getElementById('eod-reason-section');
+            const submitBtn = document.getElementById('eod-submit-btn');
+            const d = new Date(tanggalStr + 'T12:00:00+08:00');
+
+            document.getElementById('eod-tanggal').textContent = `Rekap Hari Kemarin: ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+            document.getElementById('eod-total').textContent = total + '/5';
+
+            if (total === 5) {
+                document.getElementById('eod-icon').textContent = '🌟';
+                header.style.background = 'linear-gradient(135deg, var(--teal) 0%, var(--teal-2) 100%)';
+                reasonSection.style.display = 'none';
+
+                submitBtn.style.display = 'block';
+                submitBtn.textContent = 'Lanjutkan Ceklis Hari Ini';
+                submitBtn.onclick = function () {
+                    localStorage.setItem('rekap_selesai_' + tanggalStr, 'true');
+                    overlay.classList.remove('show');
+                };
+            } else {
+                document.getElementById('eod-icon').textContent = '📝';
+                header.style.background = 'linear-gradient(135deg, #1a4a3e 0%, var(--teal) 100%)';
+                reasonSection.style.display = 'block';
+
+                submitBtn.style.display = 'block';
+                submitBtn.textContent = 'Simpan Alasan & Lanjutkan';
+
+                // Memaksa atribut tanggal untuk fungsi submitEODReason
+                window.tempReviewDate = tanggalStr;
+            }
+
+            // Tampilkan baris sholat
+            let html = '';
+            prayers.forEach(p => {
+                const done = sholat[p];
+                html += `<div style="display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:var(--r-sm); border:1.5px solid ${done ? 'var(--teal)' : 'var(--border)'}; background:${done ? 'var(--teal-light)' : 'var(--surface2)'};">
+            <span style="font-size:13.5px; font-weight:800; color:${done ? 'var(--teal)' : 'var(--text3)'}; width:100px;">${PRAYER_LABELS[p]}</span>
+            <span style="font-size:11px; font-weight:700; padding:3px 9px; border-radius:10px; background:${done ? 'var(--teal)' : 'rgba(160,120,48,0.15)'}; color:${done ? '#fff' : 'var(--gold)'};">${done ? 'Sholat' : 'Terlewat'}</span>
+        </div>`;
+            });
+            document.getElementById('eod-prayer-list').innerHTML = html;
+
+            // Paksa modal agar tidak bisa ditutup tanpa aksi
+            overlay.style.backdropFilter = 'blur(10px)';
+            overlay.onclick = null;
+            overlay.classList.add('show');
+        }   
