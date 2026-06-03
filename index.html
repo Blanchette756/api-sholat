@@ -1771,19 +1771,14 @@
 
         function isPrayerUnlocked(prayerId) {
             if (!prayerTimes) return false;
+            if (!toleranceMinutes) return false;  // tunggu tolerance siap
             const now = getCurrentWITA();
             const nowMins = now.getHours() * 60 + now.getMinutes();
             const [h, m] = prayerTimes[prayerId].split(':').map(Number);
             const startMins = h * 60 + m;
-            const idx = prayers.indexOf(prayerId);
-            let endMins;
-            if (idx < prayers.length - 1) {
-                const nextPrayer = prayers[idx + 1];
-                const [nh, nm] = prayerTimes[nextPrayer].split(':').map(Number);
-                endMins = nh * 60 + nm + toleranceMinutes;
-            } else {
-                endMins = 23 * 60 + 59;
-            }
+            // Jendela ceklis: tepat sejak waktu sholat sampai +toleranceMinutes
+            // Contoh Subuh 04:39 + toleransi 60 menit → buka 04:39–05:39 saja
+            const endMins = startMins + toleranceMinutes;
             return nowMins >= startMins && nowMins < endMins;
         }
 
@@ -2222,8 +2217,10 @@
         // INIT
         // ══════════════════════════════════════════════
         fetch('/ping').catch(() => { });
-        fetchTolerance();
-        fetchPrayerTimes();
+        // Toleransi HARUS selesai dulu sebelum prayerTimes di-apply ke lock state
+        fetchTolerance().then(() => {
+            fetchPrayerTimes();
+        });
         updateProgress();
 
         window._onAuthReady = async function () {
@@ -2320,7 +2317,6 @@
             });
             document.getElementById('eod-prayer-list').innerHTML = html;
 
-            // Paksa modal agar tidak bisa ditutup tanpa aksi
             overlay.style.backdropFilter = 'blur(10px)';
             overlay.onclick = null;
             overlay.classList.add('show');

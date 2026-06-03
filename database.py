@@ -49,10 +49,20 @@ class Database:
         )
         return True, "OK"
     
-    def get_statistik_lomba(self, start_date='2026-05-12', end_date='2026-05-18'):
-        """Menghitung total sholat dan merekap waktu ceklis untuk penentuan juara."""
+    def get_statistik_lomba(self, start_date='', end_date=''):
+        """Menghitung total sholat dan merekap waktu ceklis untuk penentuan juara.
+        Jika start_date dan end_date kosong, ambil semua data (keseluruhan)."""
+        match_filter = {}
+        if start_date or end_date:
+            date_q = {}
+            if start_date:
+                date_q["$gte"] = start_date
+            if end_date:
+                date_q["$lte"] = end_date
+            match_filter["tanggal"] = date_q
+
         pipeline = [
-            {"$match": {"tanggal": {"$gte": start_date, "$lte": end_date}}},
+            *([{"$match": match_filter}] if match_filter else []),
             {"$group": {
                 "_id": "$uid",
                 "nama": {"$first": "$nama"},

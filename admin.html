@@ -717,12 +717,13 @@
                     <div class="table-empty">Memuat data...</div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div id="view-statistik" style="display:none;">
-        <div id="statistik-content">
-            <div class="table-empty">Memuat data statistik...</div>
+            <!-- STATISTIK VIEW -->
+            <div id="view-statistik" style="display:none;">
+                <div id="statistik-content">
+                    <div class="table-empty">Memuat data statistik...</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -758,7 +759,6 @@
             document.getElementById('header-date').textContent = days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
         })();
 
-        // ── Tabs ──
         function switchTab(tab) {
             currentTab = tab;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -775,36 +775,99 @@
 
         async function loadStatistik() {
             const el = document.getElementById('statistik-content');
-            el.innerHTML = '<div class="table-empty">Memuat data 7 hari terakhir...</div>';
+            el.innerHTML = '<div class="table-empty">Memuat semua data statistik...</div>';
             try {
-                const res = await fetch('/api/statistik', { headers: HEADERS });
+                const res = await fetch('/api/statistik?start=&end=', { headers: HEADERS });
                 const json = await res.json();
-
-                let html = '<div style="display:flex; flex-direction:column; gap:12px;">';
-                json.data.forEach((r, index) => {
-                    const rankBadge = index === 0 ? '🥇 Peringkat 1' : index === 1 ? '🥈 Peringkat 2' : index === 2 ? '🥉 Peringkat 3' : `#${index + 1}`;
-                    const isTop3 = index < 3;
-
-                    html += `<div style="padding:16px; border:1.5px solid ${isTop3 ? 'var(--gold)' : 'var(--border)'}; border-radius:var(--r-sm); background:${isTop3 ? 'rgba(196, 154, 60, 0.05)' : 'var(--surface2)'};">
-                            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                                <strong style="color:var(--text);">${esc(r.nama)} <span style="font-size:10px; color:var(--gold); margin-left:6px;">${rankBadge}</span></strong>
-                                 <span style="font-weight:900; color:var(--green);">${r.total_sholat} Sholat</span>
-                            </div>`;
-
-                    r.detail_harian.forEach(d => {
-                        const w = d.waktu_ceklis || {};
-                        html += `<div style="font-size:11px; color:var(--text2); margin-top:4px;">
-                                <strong>${d.tanggal}</strong>: 
-                                 Subuh(${w.subuh || '-'}), Dzuhur(${w.dzuhur || '-'}), Ashar(${w.ashar || '-'}), Maghrib(${w.maghrib || '-'}), Isya(${w.isya || '-'})
-                             </div>`;
-                    });
-                    html += `</div>`;
-                });
-                html += '</div>';
-                el.innerHTML = html;
+                renderStatistik(json.data || []);
             } catch (e) {
                 el.innerHTML = '<div class="table-empty">Gagal memuat statistik.</div>';
             }
+        }
+
+        function renderStatistik(data) {
+            const el = document.getElementById('statistik-content');
+            if (!data.length) { el.innerHTML = '<div class="table-empty">Belum ada data statistik.</div>'; return; }
+
+            const pKeys = ['subuh','dzuhur','ashar','maghrib','isya'];
+            const pEmoji = { subuh:'🌙', dzuhur:'☀️', ashar:'🌤️', maghrib:'🌇', isya:'🌃' };
+            const medals = ['🥇','🥈','🥉'];
+            const rankColors = ['#FFD700','#C0C0C0','#CD7F32'];
+            const rankBg = ['rgba(255,215,0,0.08)','rgba(192,192,192,0.06)','rgba(205,127,50,0.06)'];
+
+            // ── TOP 3 PODIUM ──
+            const top3 = data.slice(0, Math.min(3, data.length));
+            let html = `<div style="margin-bottom:16px;">
+                <div style="font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;text-align:center;">🏆 Papan Peringkat — Keseluruhan</div>
+                <div style="display:grid;grid-template-columns:repeat(${top3.length},1fr);gap:10px;margin-bottom:16px;">`;
+
+            top3.forEach((r, i) => {
+                const maxSholat = (r.detail_harian || []).length * 5 || 35;
+                const pct = maxSholat ? Math.round(r.total_sholat / maxSholat * 100) : 0;
+                html += `<div style="background:${rankBg[i]};border:1.5px solid ${rankColors[i]}44;border-radius:14px;padding:14px 10px;text-align:center;position:relative;overflow:hidden;">
+                    <div style="font-size:28px;margin-bottom:4px;">${medals[i]}</div>
+                    <div style="font-size:13px;font-weight:800;color:var(--text);line-height:1.2;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(r.nama||'-')}</div>
+                    <div style="font-size:22px;font-weight:900;color:${rankColors[i]};line-height:1.1;">${r.total_sholat}</div>
+                    <div style="font-size:10px;color:var(--text3);font-weight:700;">sholat</div>
+                    <div style="margin-top:8px;height:4px;background:var(--surface3);border-radius:99px;overflow:hidden;">
+                        <div style="height:100%;width:${pct}%;background:${rankColors[i]};border-radius:99px;"></div>
+                    </div>
+                    <div style="font-size:10px;color:var(--text3);font-weight:700;margin-top:4px;">${pct}%</div>
+                </div>`;
+            });
+            html += `</div></div>`;
+
+            // ── ALL RANKINGS ──
+            html += `<div style="display:flex;flex-direction:column;gap:8px;">`;
+            data.forEach((r, index) => {
+                const isTop3 = index < 3;
+                const rankLabel = index < 3 ? `${medals[index]} Peringkat ${index+1}` : `#${index+1}`;
+                const rankColor = index < 3 ? rankColors[index] : 'var(--text3)';
+                const maxSholat = (r.detail_harian || []).length * 5 || 35;
+                const pct = maxSholat ? Math.round(r.total_sholat / maxSholat * 100) : 0;
+                const barColor = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--gold)' : 'var(--red-light)';
+                const uid = (r.uid || r.email || '').replace(/[^a-z0-9]/gi,'') + index;
+
+                html += `<div style="border:1.5px solid ${isTop3 ? rankColors[index]+'55' : 'var(--border)'};border-radius:var(--r-sm);overflow:hidden;">
+                    <div onclick="toggleCard('sc-${uid}')" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface2);cursor:pointer;">
+                        <div style="width:32px;height:32px;border-radius:10px;background:${isTop3 ? rankColors[index]+'22' : 'var(--surface3)'};display:flex;align-items:center;justify-content:center;font-size:${isTop3?'16':'13'}px;font-weight:900;color:${rankColor};flex-shrink:0;">${index < 3 ? medals[index] : index+1}</div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(r.nama||'-')}</div>
+                            <div style="margin-top:5px;height:4px;background:var(--surface3);border-radius:99px;overflow:hidden;">
+                                <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,${barColor},${barColor}99);border-radius:99px;transition:width 0.6s ease;"></div>
+                            </div>
+                        </div>
+                        <div style="text-align:right;flex-shrink:0;">
+                            <div style="font-size:16px;font-weight:900;color:${barColor};">${r.total_sholat}</div>
+                            <div style="font-size:10px;color:var(--text3);font-weight:700;">${pct}%</div>
+                        </div>
+                    </div>
+                    <div id="sc-${uid}" class="rsc-body">
+                        <div style="font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Detail Waktu Ceklis</div>`;
+
+                (r.detail_harian || []).forEach(d => {
+                    const w = d.waktu_ceklis || {};
+                    const s = d.sholat || {};
+                    const dayTotal = pKeys.filter(p => s[p]).length;
+                    const dayColor = dayTotal >= 5 ? 'var(--green)' : dayTotal >= 3 ? 'var(--gold)' : 'var(--red-light)';
+                    html += `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(196,30,58,0.07);">
+                        <span style="width:54px;font-size:10px;font-weight:700;color:var(--text3);flex-shrink:0;">${d.tanggal.substring(5)}</span>
+                        <div style="display:flex;gap:4px;flex:1;">`;
+                    pKeys.forEach(p => {
+                        const done = s[p];
+                        const waktu = w[p] || '';
+                        html += `<div title="${p}${waktu?' · '+waktu:''}" style="flex:1;padding:4px 2px;border-radius:6px;background:${done?'rgba(46,204,113,0.15)':'rgba(196,30,58,0.1)'};text-align:center;">
+                            <div style="font-size:12px;">${pEmoji[p]}</div>
+                            <div style="font-size:8px;font-weight:700;color:${done?'var(--green)':'var(--text3)'};">${waktu||'—'}</div>
+                        </div>`;
+                    });
+                    html += `</div><span style="font-size:12px;font-weight:800;color:${dayColor};flex-shrink:0;">${dayTotal}/5</span></div>`;
+                });
+
+                html += `</div></div>`;
+            });
+            html += `</div>`;
+            el.innerHTML = html;
         }
 
 

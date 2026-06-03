@@ -107,8 +107,8 @@ def is_prayer_in_window(prayer_id, tolerance_minutes=60):
         end_mins = nh * 60 + nm + tolerance_minutes
     else:
         end_mins = 23 * 60 + 59
-    # Hanya boleh checklist SETELAH waktu sholat masuk (tidak boleh early check)
-    return start_mins <= now_mins < end_mins
+    # also allow checking tolerance minutes before prayer time (early check)
+    return (start_mins - tolerance_minutes) <= now_mins < end_mins
 
 
 firebase_enabled = False
@@ -394,19 +394,6 @@ def admin_logout():
     logger.info("Admin logout")
     return resp
 
-@app.route('/api/statistik', methods=['GET'])
-def get_statistik():
-    if not verify_admin():
-        return jsonify({"status": "error", "message": "Unauthorized"}), 401
-    try:
-        # Kosong = ambil semua data (keseluruhan)
-        start_date = request.args.get('start', '')
-        end_date = request.args.get('end', '')
-        data = db_manager.get_statistik_lomba(start_date=start_date, end_date=end_date)
-        return jsonify({"status": "success", "data": data})
-    except Exception as e:
-        logger.exception("Error /api/statistik: %s", e)
-        return jsonify({"status": "error", "message": "Gagal mengambil data"}), 500
 
 @app.route('/api/settings', methods=['GET'])
 def get_settings():
