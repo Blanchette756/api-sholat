@@ -45,6 +45,7 @@ ADMIN_COOKIE = 'reve_admin'
 
 
 def set_admin_cookie(response, token):
+    """Set HTTP-only admin session cookie."""
     response.set_cookie(
         ADMIN_COOKIE,
         token,
@@ -58,6 +59,7 @@ def set_admin_cookie(response, token):
 
 
 def verify_admin_cookie():
+    """Verify admin JWT from cookie (server-side page guarding)."""
     if not _has_jwt or not JWT_SECRET:
         return False
     token = request.cookies.get(ADMIN_COOKIE, '')
@@ -71,7 +73,9 @@ def verify_admin_cookie():
 
 
 WITA = timezone(timedelta(hours=8))
+
 PRAYER_ORDER = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya']
+
 PRAYER_TIMES_APPROX = {
     'subuh': (4, 20),
     'dzuhur': (12, 0),
@@ -99,9 +103,11 @@ def is_prayer_in_window(prayer_id, tolerance_minutes=60):
     idx = PRAYER_ORDER.index(prayer_id)
     if idx < len(PRAYER_ORDER) - 1:
         nh, nm = PRAYER_TIMES_APPROX[PRAYER_ORDER[idx + 1]]
+        # extend end window by tolerance so users can still check just after next prayer starts
         end_mins = nh * 60 + nm + tolerance_minutes
     else:
         end_mins = 23 * 60 + 59
+    # Hanya boleh checklist SETELAH waktu sholat masuk (tidak boleh early check)
     return start_mins <= now_mins < end_mins
 
 
@@ -147,7 +153,7 @@ def set_security_headers(response):
     response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://apis.google.com; "
+        "script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         "font-src https://fonts.gstatic.com; "
         "img-src 'self' data:; "
@@ -192,8 +198,11 @@ def verify_admin():
 def ping():
     return jsonify({"status": "ok"}), 200
 
+
+
 @app.route('/admin.html')
 def admin_page():
+    # Serve admin.html only if a valid admin cookie is present
     if not verify_admin_cookie():
         return redirect('/admin-login.html')
     return send_from_directory('.', 'admin.html')
@@ -202,19 +211,24 @@ def admin_page():
 def index():
     return send_from_directory('.', 'login.html')
 
+
 @app.route('/<path:path>')
 def static_files(path):
     if path in ALLOWED_STATIC:
         return send_from_directory('.', path)
     abort(404)
 
+
 def _rate_limit(limit_string):
     if limiter:
         return limiter.limit(limit_string)
     return lambda f: f
 
+
+# ── Prayer Check (individual toggle with server-side validation) ──
+
 @app.route('/sholat/check', methods=['POST'])
-@_rate_limit("40 per minute")
+@_rate_limit("30 per minute")
 def check_prayer():
     try:
         user = verify_token()
@@ -227,7 +241,6 @@ def check_prayer():
 
         prayer = data.get('prayer', '')
         checked = bool(data.get('checked', False))
-        jamaah = data.get('jamaah', None)
 
         if prayer not in PRAYER_TIMES_APPROX:
             return jsonify({"status": "error", "message": "Sholat tidak valid"}), 400
@@ -241,7 +254,7 @@ def check_prayer():
         if checked and not is_prayer_in_window(prayer, tolerance):
             return jsonify({"status": "error", "message": "Di luar waktu sholat"}), 403
 
-        success, msg = db_manager.check_prayer(uid, email, nama, tanggal, prayer, checked, jamaah)
+        success, msg = db_manager.check_prayer(uid, email, nama, tanggal, prayer, checked)
         if success:
             return jsonify({"status": "success"})
         return jsonify({"status": "error", "message": msg}), 400
@@ -249,31 +262,6 @@ def check_prayer():
         logger.exception("Error pada /sholat/check: %s", e)
         return jsonify({"status": "error", "message": "Terjadi kesalahan server"}), 500
 
-@app.route('/sholat/haid', methods=['POST'])
-@_rate_limit("10 per minute")
-def set_haid():
-    try:
-        user = verify_token()
-        if not user:
-            return jsonify({"status": "error", "message": "Silakan login terlebih dahulu"}), 401
-
-        data = request.get_json(silent=True)
-        if not data or not isinstance(data, dict):
-            return jsonify({"status": "error", "message": "Data tidak valid"}), 400
-
-        is_haid = bool(data.get('haid', False))
-        uid = user.get('uid', '')
-        email = user.get('email', '')
-        nama = user.get('name', email)
-        tanggal = get_wita_date_str()
-
-        success, msg = db_manager.set_haid(uid, email, nama, tanggal, is_haid)
-        if success:
-            return jsonify({"status": "success"})
-        return jsonify({"status": "error", "message": msg}), 400
-    except Exception as e:
-        logger.exception("Error pada /sholat/haid: %s", e)
-        return jsonify({"status": "error", "message": "Terjadi kesalahan server"}), 500
 
 @app.route('/sholat/today', methods=['GET'])
 @_rate_limit("30 per minute")
@@ -284,6 +272,7 @@ def get_today():
             return jsonify({"status": "error", "message": "Login dulu"}), 401
 
         uid = user.get('uid', '')
+        # Terima date param opsional (untuk recap EOD tengah malam → ambil data kemarin)
         date_param = request.args.get('date', '').strip()
         if date_param:
             import re
@@ -298,6 +287,7 @@ def get_today():
         logger.exception("Error pada /sholat/today: %s", e)
         return jsonify({"status": "error"}), 500
 
+
 @app.route('/sholat/finalize', methods=['POST'])
 @_rate_limit("5 per minute")
 def finalize():
@@ -310,27 +300,56 @@ def finalize():
         tanggal = get_wita_date_str()
 
         status = db_manager.get_today_status(uid, tanggal)
-        haid = status.get('haid', False)
         sholat = status.get('sholat', {})
-        jamaah = status.get('jamaah', {})
-        
-        if not haid:
-            total = sum(1 for v in sholat.values() if v)
-            if total == 0:
-                return jsonify({"status": "error", "message": "Belum ada sholat yang diceklis"}), 400
-            # Validasi jamaah untuk setiap sholat yang dicentang
-            for p, is_done in sholat.items():
-                if is_done and not jamaah.get(p):
-                    return jsonify({"status": "error", "message": f"Status Berjamaah/Sendiri untuk {p.capitalize()} wajib diisi"}), 400
-        else:
-            total = 0
+        total = sum(1 for v in sholat.values() if v)
+        if total == 0:
+            return jsonify({"status": "error", "message": "Belum ada sholat yang diceklis"}), 400
 
         db_manager.finalize_day(uid, tanggal)
-        logger.info("Laporan finalized uid=%s tanggal=%s total=%d haid=%s", uid, tanggal, total, haid)
-        return jsonify({"status": "success", "message": "Status Haid dikirim" if haid else f"Laporan dikirim ({total}/5)"})
+        logger.info("Laporan finalized uid=%s tanggal=%s total=%d", uid, tanggal, total)
+        return jsonify({"status": "success", "message": f"Laporan dikirim ({total}/5)"})
     except Exception as e:
         logger.exception("Error pada /sholat/finalize: %s", e)
         return jsonify({"status": "error", "message": "Terjadi kesalahan server"}), 500
+
+
+# ── Legacy batch submit (backward compat) ──
+
+@app.route('/sholat', methods=['POST'])
+@_rate_limit("10 per minute")
+def terima():
+    try:
+        user = verify_token()
+        if not user:
+            return jsonify({"status": "error", "message": "Silakan login terlebih dahulu"}), 401
+
+        data = request.get_json(silent=True)
+        if not data or not isinstance(data, dict):
+            return jsonify({"status": "error", "message": "Data JSON tidak valid"}), 400
+
+        subuh = bool(data.get('subuh', False))
+        dzuhur = bool(data.get('dzuhur', False))
+        ashar = bool(data.get('ashar', False))
+        maghrib = bool(data.get('maghrib', False))
+        isya = bool(data.get('isya', False))
+
+        uid = user.get('uid', '')
+        email = user.get('email', '')
+        nama = user.get('name', email)
+        tanggal = get_wita_date_str()
+
+        success, message = db_manager.sholat(tanggal, subuh, dzuhur, ashar, maghrib, isya, uid, email, nama)
+        if success:
+            logger.info("Laporan sholat dari uid=%s berhasil", uid)
+            return jsonify({"status": "success", "message": message}), 201
+        else:
+            return jsonify({"status": "error", "message": message}), 400
+    except Exception as e:
+        logger.exception("Error pada endpoint /sholat: %s", e)
+        return jsonify({"status": "error", "message": "Terjadi kesalahan server"}), 500
+
+
+# ── Admin Endpoints ──
 
 @app.route('/admin/login', methods=['POST'])
 @_rate_limit("5 per minute")
@@ -359,12 +378,14 @@ def admin_login():
     logger.warning("Admin login gagal: username=%s", username)
     return jsonify({"status": "error", "message": "Username atau password salah"}), 401
 
+
 @app.route('/admin/verify', methods=['GET'])
 @_rate_limit("20 per minute")
 def admin_verify():
     if verify_admin():
         return jsonify({"status": "ok"})
     return jsonify({"status": "error"}), 401
+
 
 @app.route('/admin/logout', methods=['POST'])
 def admin_logout():
@@ -378,6 +399,7 @@ def get_statistik():
     if not verify_admin():
         return jsonify({"status": "error", "message": "Unauthorized"}), 401
     try:
+        # Kosong = ambil semua data (keseluruhan)
         start_date = request.args.get('start', '')
         end_date = request.args.get('end', '')
         data = db_manager.get_statistik_lomba(start_date=start_date, end_date=end_date)
@@ -395,6 +417,7 @@ def get_settings():
         logger.exception("Error get settings: %s", e)
         return jsonify({"tolerance_minutes": 60})
 
+
 @app.route('/api/settings', methods=['POST'])
 def update_settings():
     if not verify_admin():
@@ -409,6 +432,7 @@ def update_settings():
         logger.info("Toleransi diubah ke %d menit", minutes)
         return jsonify({"status": "success", "message": f"Toleransi diubah ke {minutes} menit"})
     return jsonify({"status": "error", "message": "Gagal update"}), 500
+
 
 @app.route('/api/students', methods=['GET'])
 def get_students():
@@ -427,6 +451,9 @@ def get_students():
         logger.exception("Error get students: %s", e)
         return jsonify({"status": "error", "message": "Gagal mengambil data"}), 500
 
+
+# ── Public Scoreboard (hari ini, semua user login) ──
+
 @app.route('/api/scoreboard', methods=['GET'])
 @_rate_limit("30 per minute")
 def get_scoreboard():
@@ -440,6 +467,9 @@ def get_scoreboard():
     except Exception as e:
         logger.exception("Error /api/scoreboard: %s", e)
         return jsonify({"status": "error", "message": "Gagal mengambil data"}), 500
+
+
+# ── Save end-of-day reason ──
 
 @app.route('/sholat/reason', methods=['POST'])
 @_rate_limit("5 per minute")
@@ -455,6 +485,7 @@ def save_reason():
         if not reason:
             return jsonify({"status": "error", "message": "Alasan tidak boleh kosong"}), 400
         uid = user.get('uid', '')
+        # Gunakan date param jika ada (untuk EOD tengah malam → simpan ke tanggal kemarin)
         date_param = data.get('date', '').strip()
         if date_param:
             import re
@@ -471,6 +502,9 @@ def save_reason():
         logger.exception("Error /sholat/reason: %s", e)
         return jsonify({"status": "error", "message": "Terjadi kesalahan server"}), 500
 
+
+# ── Weekly report ──
+
 @app.route('/api/weekly', methods=['GET'])
 def get_weekly():
     if not verify_admin():
@@ -483,6 +517,9 @@ def get_weekly():
     except Exception as e:
         logger.exception("Error /api/weekly: %s", e)
         return jsonify({"status": "error", "message": "Gagal mengambil data"}), 500
+
+
+# ── Monthly report ──
 
 @app.route('/api/monthly', methods=['GET'])
 def get_monthly():
@@ -497,6 +534,7 @@ def get_monthly():
         logger.exception("Error /api/monthly: %s", e)
         return jsonify({"status": "error", "message": "Gagal mengambil data"}), 500
 
+
 @app.route('/api/export', methods=['GET'])
 def export_excel():
     if not verify_admin():
@@ -510,32 +548,18 @@ def export_excel():
         wb = Workbook()
         ws = wb.active
         ws.title = "Laporan Sholat"
-        ws.append(["Nama", "Email", "Tanggal", "Sedang Haid", "Subuh", "Dzuhur", "Ashar", "Maghrib", "Isya", "Status", "Alasan"])
-        
+        ws.append(["Nama", "Email", "Tanggal", "Subuh", "Dzuhur", "Ashar", "Maghrib", "Isya", "Status", "Alasan"])
         for r in records:
-            haid = r.get("haid", False)
             s = r.get("sholat", {})
-            j = r.get("jamaah", {})
-            
-            def format_prayer(p):
-                if haid: return "Haid"
-                if s.get(p):
-                    jam = j.get(p)
-                    if jam == 'berjamaah': return "Ya (Berjamaah)"
-                    if jam == 'sendiri': return "Ya (Sendiri)"
-                    return "Ya"
-                return "Tidak"
-                
             ws.append([
                 r.get("nama", ""),
                 r.get("email", ""),
                 r.get("tanggal", ""),
-                "Ya" if haid else "Tidak",
-                format_prayer("subuh"),
-                format_prayer("dzuhur"),
-                format_prayer("ashar"),
-                format_prayer("maghrib"),
-                format_prayer("isya"),
+                "Ya" if s.get("subuh") else "Tidak",
+                "Ya" if s.get("dzuhur") else "Tidak",
+                "Ya" if s.get("ashar") else "Tidak",
+                "Ya" if s.get("maghrib") else "Tidak",
+                "Ya" if s.get("isya") else "Tidak",
                 "Selesai" if r.get("finalized") else "Belum",
                 r.get("alasan", ""),
             ])
@@ -551,5 +575,10 @@ def export_excel():
         logger.exception("Error export: %s", e)
         return jsonify({"status": "error", "message": "Gagal export"}), 500
 
+
 if __name__ == '__main__':
+    print("=======================================")
+    print("    MENGHIDUPKAN MESIN SERVER API      ")
+    print("=======================================")
+    print("Server berjalan di port 5000...")
     app.run(host='0.0.0.0', port=5000, debug=False)

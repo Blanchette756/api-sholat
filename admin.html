@@ -10,604 +10,104 @@
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap"
         rel="stylesheet">
     <style>
-        *,
-        *::before,
-        *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --bg: #0d0a0e;
-            --surface: #1a1015;
-            --surface2: #241820;
-            --surface3: #2e1e28;
-            --red: #c41e3a;
-            --red-dark: #8b0000;
-            --red-light: #e8354d;
-            --red-glow: rgba(196, 30, 58, 0.25);
-            --green: #2ecc71;
-            --gold: #c49a3c;
-            --text: #e8d5d5;
-            --text2: #a08888;
-            --text3: #6a5555;
-            --border: rgba(196, 30, 58, 0.2);
-            --border2: rgba(196, 30, 58, 0.35);
-            --shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
-            --r: 18px;
-            --r-sm: 12px;
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--bg);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 28px 16px 60px;
-            visibility: hidden;
-        }
-
-        body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background:
-                radial-gradient(ellipse 700px 500px at 30% 0%, rgba(196, 30, 58, 0.06) 0%, transparent 70%),
-                radial-gradient(ellipse 500px 400px at 90% 90%, rgba(139, 0, 0, 0.05) 0%, transparent 60%);
-            pointer-events: none;
-        }
-
-        .wrapper {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* ── WELCOME OVERLAY ── */
-        .welcome-overlay {
-            position: fixed;
-            inset: 0;
-            background: var(--bg);
-            z-index: 999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            animation: welcomeFade 3s ease forwards;
-        }
-
-        .welcome-text {
-            font-family: 'Noto Serif', serif;
-            font-size: 36px;
-            font-weight: 700;
-            color: var(--text);
-            opacity: 0;
-            animation: welcomeIn 1.5s ease 0.3s forwards;
-            text-shadow: 0 0 40px rgba(196, 30, 58, 0.4);
-        }
-
-        .welcome-sub {
-            font-size: 14px;
-            color: var(--text2);
-            opacity: 0;
-            animation: welcomeIn 1s ease 1s forwards;
-            margin-top: 8px;
-        }
-
-        .welcome-line {
-            width: 60px;
-            height: 2px;
-            background: var(--red);
-            margin-top: 16px;
-            opacity: 0;
-            animation: welcomeIn 0.8s ease 0.8s forwards;
-            box-shadow: 0 0 15px rgba(196, 30, 58, 0.5);
-        }
-
-        @keyframes welcomeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes welcomeFade {
-
-            0%,
-            70% {
-                opacity: 1;
-                visibility: visible;
-            }
-
-            100% {
-                opacity: 0;
-                visibility: hidden;
-                pointer-events: none;
-            }
-        }
-
-        /* ── HEADER ── */
-        .header-card {
-            background: linear-gradient(135deg, var(--red-dark) 0%, #1a0510 60%, var(--surface) 100%);
-            border-radius: 26px;
-            padding: 24px 22px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 8px 40px rgba(196, 30, 58, 0.12);
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            animation: fadeUp 0.4s ease both 2.8s;
-            opacity: 0;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .header-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            background: var(--surface2);
-            border: 2px solid var(--border2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            filter: drop-shadow(0 0 8px rgba(196, 30, 58, 0.3));
-        }
-
-        .header-info h2 {
-            font-family: 'Noto Serif', serif;
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text);
-        }
-
-        .header-info p {
-            font-size: 11px;
-            color: var(--text2);
-            margin-top: 2px;
-        }
-
-        .btn-logout {
-            padding: 8px 16px;
-            background: var(--surface2);
-            color: var(--text2);
-            border: 1.5px solid var(--border);
-            border-radius: var(--r-sm);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.22s ease;
-        }
-
-        .btn-logout:hover {
-            border-color: var(--red);
-            color: var(--red-light);
-        }
-
-        /* ── CARDS ── */
-        .card {
-            background: var(--surface);
-            border-radius: var(--r);
-            padding: 20px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            opacity: 0;
-        }
-
-        .card:nth-child(2) {
-            animation: fadeUp 0.45s ease both 2.9s;
-        }
-
-        .card:nth-child(3) {
-            animation: fadeUp 0.45s ease both 3.0s;
-        }
-
-        .card:nth-child(4) {
-            animation: fadeUp 0.45s ease both 3.1s;
-        }
-
-        .card-title {
-            font-size: 11px;
-            font-weight: 800;
-            color: var(--text3);
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            margin-bottom: 14px;
-        }
-
-        /* ── TOLERANCE CONFIG ── */
-        .tolerance-options {
-            display: flex;
-            gap: 10px;
-        }
-
-        .tol-btn {
-            flex: 1;
-            padding: 14px;
-            background: var(--surface2);
-            border: 2px solid var(--border);
-            border-radius: var(--r-sm);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 16px;
-            font-weight: 800;
-            color: var(--text2);
-            cursor: pointer;
-            transition: all 0.22s ease;
-            text-align: center;
-        }
-
-        .tol-btn:hover {
-            border-color: var(--red);
-            color: var(--text);
-        }
-
-        .tol-btn.active {
-            border-color: var(--red);
-            background: rgba(196, 30, 58, 0.12);
-            color: var(--red-light);
-            box-shadow: 0 0 12px var(--red-glow);
-        }
-
-        .tol-save {
-            margin-top: 12px;
-            width: 100%;
-            padding: 12px;
-            background: var(--red);
-            color: #fff;
-            border: none;
-            border-radius: var(--r-sm);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 13px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.22s ease;
-            box-shadow: 0 4px 14px rgba(196, 30, 58, 0.25);
-        }
-
-        .tol-save:hover {
-            background: var(--red-light);
-            transform: translateY(-1px);
-        }
-
-        .tol-status {
-            margin-top: 10px;
-            font-size: 12px;
-            font-weight: 700;
-            text-align: center;
-            color: var(--green);
-            display: none;
-        }
-
-        /* ── EXPORT ── */
-        .export-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .export-info {
-            font-size: 13px;
-            color: var(--text2);
-        }
-
-        .export-info strong {
-            color: var(--text);
-        }
-
-        .btn-export {
-            padding: 10px 20px;
-            background: var(--surface2);
-            color: var(--text);
-            border: 1.5px solid var(--border);
-            border-radius: var(--r-sm);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 13px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.22s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-export:hover {
-            border-color: var(--red);
-            background: rgba(196, 30, 58, 0.1);
-            color: var(--red-light);
-        }
-
-        /* ── TABLE ── */
-        .table-wrap {
-            overflow-x: auto;
-            margin-top: 10px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-
-        th {
-            background: var(--surface2);
-            color: var(--text2);
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 10px;
-            padding: 10px 8px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        td {
-            padding: 10px 8px;
-            color: var(--text);
-            border-bottom: 1px solid rgba(196, 30, 58, 0.08);
-            font-weight: 600;
-        }
-
-        tr:hover td {
-            background: rgba(196, 30, 58, 0.04);
-        }
-
-        .badge-ya {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 10px;
-            font-weight: 800;
-            background: rgba(46, 204, 113, 0.15);
-            color: var(--green);
-        }
-
-        .badge-tidak {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 10px;
-            font-weight: 800;
-            background: rgba(196, 30, 58, 0.1);
-            color: var(--text3);
-        }
-
-        .table-empty {
-            text-align: center;
-            padding: 30px;
-            color: var(--text3);
-            font-size: 13px;
-        }
-
-        .table-filter {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .filter-input {
-            flex: 1;
-            padding: 9px 12px;
-            background: var(--surface2);
-            border: 1.5px solid var(--border);
-            border-radius: var(--r-sm);
-            color: var(--text);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 12px;
-            outline: none;
-        }
-
-        .filter-input:focus {
-            border-color: var(--red);
-            box-shadow: 0 0 0 3px var(--red-glow);
-        }
-
-        .filter-input::placeholder {
-            color: var(--text3);
-        }
-
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(16px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 16px 12px 48px;
-            }
-
-            .header-card {
-                padding: 18px 16px;
-                flex-wrap: wrap;
-                gap: 12px;
-            }
-
-            .welcome-text {
-                font-size: 28px;
-            }
-        }
-
-        /* ── TABS ── */
-        .tab-btn {
-            padding: 7px 16px;
-            background: var(--surface2);
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 11.5px;
-            font-weight: 800;
-            color: var(--text2);
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .tab-btn:hover {
-            border-color: var(--red);
-            color: var(--text);
-        }
-
-        .tab-btn.active {
-            background: rgba(196, 30, 58, 0.15);
-            border-color: var(--red);
-            color: var(--red-light);
-        }
-
-        /* ── WEEKLY / MONTHLY CARDS ── */
-        .report-student-card {
-            border: 1.5px solid var(--border);
-            border-radius: var(--r-sm);
-            margin-bottom: 12px;
-            overflow: hidden;
-        }
-
-        .rsc-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 14px;
-            background: var(--surface2);
-            cursor: pointer;
-            gap: 10px;
-        }
-
-        .rsc-name {
-            font-size: 13px;
-            font-weight: 800;
-            color: var(--text);
-            flex: 1;
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .rsc-email {
-            font-size: 10.5px;
-            color: var(--text3);
-            font-weight: 600;
-        }
-
-        .rsc-badge {
-            flex-shrink: 0;
-            padding: 4px 12px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 800;
-        }
-
-        .rsc-body {
-            display: none;
-            padding: 12px 14px;
-            border-top: 1px solid var(--border);
-        }
-
-        .rsc-body.open {
-            display: block;
-        }
-
-        /* Progress bar mini */
-        .mini-track {
-            width: 100%;
-            height: 5px;
-            background: var(--surface3);
-            border-radius: 99px;
-            overflow: hidden;
-            margin-top: 6px;
-        }
-
-        .mini-fill {
-            height: 100%;
-            border-radius: 99px;
-            background: linear-gradient(90deg, var(--red-dark), var(--red));
-        }
-
-        /* Detail row */
-        .detail-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 7px 0;
-            border-bottom: 1px solid rgba(196, 30, 58, 0.06);
-            font-size: 12px;
-        }
-
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-
-        .detail-tanggal {
-            width: 80px;
-            font-weight: 700;
-            color: var(--text2);
-            flex-shrink: 0;
-            font-size: 11px;
-        }
-
-        .detail-prayers {
-            display: flex;
-            gap: 4px;
-            flex: 1;
-        }
-
-        .dp-dot {
-            width: 22px;
-            height: 22px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: 800;
-        }
-
-        .dp-dot.done {
-            background: rgba(46, 204, 113, 0.18);
-            color: #2ecc71;
-        }
-
-        .dp-dot.miss {
-            background: rgba(196, 30, 58, 0.12);
-            color: var(--text3);
-        }
-
-        .detail-alasan {
-            font-size: 10.5px;
-            color: var(--gold);
-            font-style: italic;
-            margin-top: 2px;
-            padding-left: 88px;
-        }
+            --bg: #0d0a0e; --surface: #1a1015; --surface2: #241820; --surface3: #2e1e28;
+            --red: #c41e3a; --red-dark: #8b0000; --red-light: #e8354d; --red-glow: rgba(196, 30, 58, 0.25);
+            --green: #2ecc71; --gold: #c49a3c; --text: #e8d5d5; --text2: #a08888; --text3: #6a5555;
+            --border: rgba(196, 30, 58, 0.2); --border2: rgba(196, 30, 58, 0.35);
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.5); --r: 18px; --r-sm: 12px;
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 28px 16px 60px; visibility: hidden; }
+        body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse 700px 500px at 30% 0%, rgba(196, 30, 58, 0.06) 0%, transparent 70%), radial-gradient(ellipse 500px 400px at 90% 90%, rgba(139, 0, 0, 0.05) 0%, transparent 60%); pointer-events: none; }
+        .wrapper { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 14px; position: relative; z-index: 1; }
+
+        .welcome-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 999; display: flex; justify-content: center; align-items: center; flex-direction: column; animation: welcomeFade 3s ease forwards; }
+        .welcome-text { font-family: 'Noto Serif', serif; font-size: 36px; font-weight: 700; color: var(--text); opacity: 0; animation: welcomeIn 1.5s ease 0.3s forwards; text-shadow: 0 0 40px rgba(196, 30, 58, 0.4); }
+        .welcome-sub { font-size: 14px; color: var(--text2); opacity: 0; animation: welcomeIn 1s ease 1s forwards; margin-top: 8px; }
+        .welcome-line { width: 60px; height: 2px; background: var(--red); margin-top: 16px; opacity: 0; animation: welcomeIn 0.8s ease 0.8s forwards; box-shadow: 0 0 15px rgba(196, 30, 58, 0.5); }
+
+        @keyframes welcomeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes welcomeFade { 0%, 70% { opacity: 1; visibility: visible; } 100% { opacity: 0; visibility: hidden; pointer-events: none; } }
+
+        .header-card { background: linear-gradient(135deg, var(--red-dark) 0%, #1a0510 60%, var(--surface) 100%); border-radius: 26px; padding: 24px 22px; position: relative; overflow: hidden; box-shadow: 0 8px 40px rgba(196, 30, 58, 0.12); border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; animation: fadeUp 0.4s ease both 2.8s; opacity: 0; }
+        .header-left { display: flex; align-items: center; gap: 14px; }
+        .header-avatar { width: 44px; height: 44px; border-radius: 12px; background: var(--surface2); border: 2px solid var(--border2); display: flex; align-items: center; justify-content: center; font-size: 22px; filter: drop-shadow(0 0 8px rgba(196, 30, 58, 0.3)); }
+        .header-info h2 { font-family: 'Noto Serif', serif; font-size: 18px; font-weight: 700; color: var(--text); }
+        .header-info p { font-size: 11px; color: var(--text2); margin-top: 2px; }
+        .btn-logout { padding: 8px 16px; background: var(--surface2); color: var(--text2); border: 1.5px solid var(--border); border-radius: var(--r-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.22s ease; }
+        .btn-logout:hover { border-color: var(--red); color: var(--red-light); }
+
+        .card { background: var(--surface); border-radius: var(--r); padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); opacity: 0; }
+        .card:nth-child(2) { animation: fadeUp 0.45s ease both 2.9s; }
+        .card:nth-child(3) { animation: fadeUp 0.45s ease both 3.0s; }
+        .card:nth-child(4) { animation: fadeUp 0.45s ease both 3.1s; }
+        .card-title { font-size: 11px; font-weight: 800; color: var(--text3); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 14px; }
+
+        .tolerance-options { display: flex; gap: 10px; }
+        .tol-btn { flex: 1; padding: 14px; background: var(--surface2); border: 2px solid var(--border); border-radius: var(--r-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 16px; font-weight: 800; color: var(--text2); cursor: pointer; transition: all 0.22s ease; text-align: center; }
+        .tol-btn:hover { border-color: var(--red); color: var(--text); }
+        .tol-btn.active { border-color: var(--red); background: rgba(196, 30, 58, 0.12); color: var(--red-light); box-shadow: 0 0 12px var(--red-glow); }
+        .tol-save { margin-top: 12px; width: 100%; padding: 12px; background: var(--red); color: #fff; border: none; border-radius: var(--r-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.22s ease; box-shadow: 0 4px 14px rgba(196, 30, 58, 0.25); }
+        .tol-save:hover { background: var(--red-light); transform: translateY(-1px); }
+        .tol-status { margin-top: 10px; font-size: 12px; font-weight: 700; text-align: center; color: var(--green); display: none; }
+
+        .export-row { display: flex; align-items: center; justify-content: space-between; }
+        .export-info { font-size: 13px; color: var(--text2); }
+        .export-info strong { color: var(--text); }
+        .btn-export { padding: 10px 20px; background: var(--surface2); color: var(--text); border: 1.5px solid var(--border); border-radius: var(--r-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.22s ease; display: flex; align-items: center; gap: 6px; }
+        .btn-export:hover { border-color: var(--red); background: rgba(196, 30, 58, 0.1); color: var(--red-light); }
+
+        .table-wrap { overflow-x: auto; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { background: var(--surface2); color: var(--text2); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+        td { padding: 10px 8px; color: var(--text); border-bottom: 1px solid rgba(196, 30, 58, 0.08); font-weight: 600; }
+        tr:hover td { background: rgba(196, 30, 58, 0.04); }
+
+        .badge-ya { display: inline-block; padding: 3px 8px; border-radius: 8px; font-size: 10px; font-weight: 800; background: rgba(46, 204, 113, 0.15); color: var(--green); }
+        .badge-ya.jamaah { background: rgba(46, 204, 113, 0.25); border: 1px solid rgba(46, 204, 113, 0.4); }
+        .badge-ya.sendiri { background: rgba(196, 154, 60, 0.15); color: var(--gold); }
+        .badge-tidak { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; background: rgba(196, 30, 58, 0.1); color: var(--text3); }
+        .badge-haid { display: inline-block; padding: 4px 12px; border-radius: 10px; font-size: 11px; font-weight: 800; background: rgba(196, 30, 58, 0.15); color: var(--red); }
+
+        .table-empty { text-align: center; padding: 30px; color: var(--text3); font-size: 13px; }
+        .table-filter { display: flex; gap: 8px; margin-bottom: 12px; }
+        .filter-input { flex: 1; padding: 9px 12px; background: var(--surface2); border: 1.5px solid var(--border); border-radius: var(--r-sm); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; outline: none; }
+        .filter-input:focus { border-color: var(--red); box-shadow: 0 0 0 3px var(--red-glow); }
+        .filter-input::placeholder { color: var(--text3); }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        @media (max-width: 480px) { body { padding: 16px 12px 48px; } .header-card { padding: 18px 16px; flex-wrap: wrap; gap: 12px; } .welcome-text { font-size: 28px; } }
+
+        .tab-btn { padding: 7px 16px; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 11.5px; font-weight: 800; color: var(--text2); cursor: pointer; transition: all 0.2s ease; }
+        .tab-btn:hover { border-color: var(--red); color: var(--text); }
+        .tab-btn.active { background: rgba(196, 30, 58, 0.15); border-color: var(--red); color: var(--red-light); }
+
+        .report-student-card { border: 1.5px solid var(--border); border-radius: var(--r-sm); margin-bottom: 12px; overflow: hidden; }
+        .rsc-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--surface2); cursor: pointer; gap: 10px; }
+        .rsc-name { font-size: 13px; font-weight: 800; color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rsc-email { font-size: 10.5px; color: var(--text3); font-weight: 600; }
+        .rsc-badge { flex-shrink: 0; padding: 4px 12px; border-radius: 10px; font-size: 11px; font-weight: 800; }
+        .rsc-body { display: none; padding: 12px 14px; border-top: 1px solid var(--border); }
+        .rsc-body.open { display: block; }
+
+        .mini-track { width: 100%; height: 5px; background: var(--surface3); border-radius: 99px; overflow: hidden; margin-top: 6px; }
+        .mini-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--red-dark), var(--red)); }
+
+        .detail-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid rgba(196, 30, 58, 0.06); font-size: 12px; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-tanggal { width: 80px; font-weight: 700; color: var(--text2); flex-shrink: 0; font-size: 11px; }
+        .detail-prayers { display: flex; gap: 4px; flex: 1; }
+        .dp-dot { width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; }
+        .dp-dot.done { background: rgba(46, 204, 113, 0.18); color: #2ecc71; }
+        .dp-dot.miss { background: rgba(196, 30, 58, 0.12); color: var(--text3); }
+        .dp-dot.haid { background: rgba(196, 30, 58, 0.15); color: var(--red); }
+        .detail-alasan { font-size: 10.5px; color: var(--gold); font-style: italic; margin-top: 2px; padding-left: 88px; }
     </style>
 </head>
 
 <body>
-    <!-- WELCOME ANIMATION -->
     <div class="welcome-overlay" id="welcome-overlay">
         <div class="welcome-text">Welcome, Reve</div>
         <div class="welcome-line"></div>
@@ -615,7 +115,6 @@
     </div>
 
     <div class="wrapper">
-        <!-- HEADER -->
         <div class="header-card">
             <div class="header-left">
                 <div class="header-avatar">🐺</div>
@@ -627,7 +126,6 @@
             <button class="btn-logout" onclick="logout()">Keluar</button>
         </div>
 
-        <!-- TOLERANCE CONFIG -->
         <div class="card">
             <p class="card-title">Toleransi Waktu Ceklis</p>
             <div class="tolerance-options">
@@ -638,7 +136,6 @@
             <div class="tol-status" id="tol-status"></div>
         </div>
 
-        <!-- EXPORT -->
         <div class="card">
             <p class="card-title">Export Data</p>
             <div class="export-row">
@@ -655,12 +152,10 @@
             </div>
         </div>
 
-        <!-- STUDENT DATA TABLE -->
         <div class="card" id="card-harian">
             <div
                 style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
                 <p class="card-title" style="margin-bottom:0;">Data Harian Siswa</p>
-                <!-- Tab Navigation -->
                 <div style="display:flex; gap:6px;">
                     <button class="tab-btn" onclick="switchTab('statistik')">Statistik (Peringkat)</button>
                     <button class="tab-btn active" onclick="switchTab('harian')">Harian</button>
@@ -669,7 +164,6 @@
                 </div>
             </div>
 
-            <!-- HARIAN VIEW -->
             <div id="view-harian">
                 <div class="table-filter">
                     <input type="text" class="filter-input" id="filter-input" placeholder="Cari nama/email..."
@@ -696,7 +190,6 @@
                 </div>
             </div>
 
-            <!-- MINGGUAN VIEW -->
             <div id="view-mingguan" style="display:none;">
                 <div class="table-filter">
                     <input type="text" class="filter-input" id="filter-mingguan" placeholder="Cari nama/email..."
@@ -707,7 +200,6 @@
                 </div>
             </div>
 
-            <!-- BULANAN VIEW -->
             <div id="view-bulanan" style="display:none;">
                 <div class="table-filter">
                     <input type="text" class="filter-input" id="filter-bulanan" placeholder="Cari nama/email..."
@@ -718,7 +210,6 @@
                 </div>
             </div>
 
-            <!-- STATISTIK VIEW -->
             <div id="view-statistik" style="display:none;">
                 <div id="statistik-content">
                     <div class="table-empty">Memuat data statistik...</div>
@@ -737,7 +228,6 @@
         let monthlyData = [];
         let currentTab = 'harian';
 
-        // ── Auth guard ──
         (async () => {
             if (!TOKEN) { window.location.href = 'admin-login.html'; return; }
             try {
@@ -751,11 +241,8 @@
             document.body.style.visibility = 'visible';
         })();
 
-        // ── Date ──
         (function () {
-            const d = new Date();
-            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+            const d = new Date(), days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'], months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
             document.getElementById('header-date').textContent = days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
         })();
 
@@ -780,266 +267,139 @@
                 const res = await fetch('/api/statistik?start=&end=', { headers: HEADERS });
                 const json = await res.json();
                 renderStatistik(json.data || []);
-            } catch (e) {
-                el.innerHTML = '<div class="table-empty">Gagal memuat statistik.</div>';
-            }
+            } catch (e) { el.innerHTML = '<div class="table-empty">Gagal memuat statistik.</div>'; }
         }
 
         function renderStatistik(data) {
             const el = document.getElementById('statistik-content');
             if (!data.length) { el.innerHTML = '<div class="table-empty">Belum ada data statistik.</div>'; return; }
 
-            const pKeys = ['subuh','dzuhur','ashar','maghrib','isya'];
-            const pEmoji = { subuh:'🌙', dzuhur:'☀️', ashar:'🌤️', maghrib:'🌇', isya:'🌃' };
-            const medals = ['🥇','🥈','🥉'];
-            const rankColors = ['#FFD700','#C0C0C0','#CD7F32'];
-            const rankBg = ['rgba(255,215,0,0.08)','rgba(192,192,192,0.06)','rgba(205,127,50,0.06)'];
+            const pKeys = ['subuh','dzuhur','ashar','maghrib','isya'], pEmoji = { subuh:'🌙', dzuhur:'☀️', ashar:'🌤️', maghrib:'🌇', isya:'🌃' }, medals = ['🥇','🥈','🥉'], rankColors = ['#FFD700','#C0C0C0','#CD7F32'], rankBg = ['rgba(255,215,0,0.08)','rgba(192,192,192,0.06)','rgba(205,127,50,0.06)'];
 
-            // ── TOP 3 PODIUM ──
             const top3 = data.slice(0, Math.min(3, data.length));
-            let html = `<div style="margin-bottom:16px;">
-                <div style="font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;text-align:center;">🏆 Papan Peringkat — Keseluruhan</div>
-                <div style="display:grid;grid-template-columns:repeat(${top3.length},1fr);gap:10px;margin-bottom:16px;">`;
+            let html = `<div style="margin-bottom:16px;"><div style="font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px;text-align:center;">🏆 Papan Peringkat — Keseluruhan</div><div style="display:grid;grid-template-columns:repeat(${top3.length},1fr);gap:10px;margin-bottom:16px;">`;
 
             top3.forEach((r, i) => {
-                const maxSholat = (r.detail_harian || []).length * 5 || 35;
+                const maxSholat = (r.detail_harian || []).filter(h => !h.haid).length * 5 || 35;
                 const pct = maxSholat ? Math.round(r.total_sholat / maxSholat * 100) : 0;
-                html += `<div style="background:${rankBg[i]};border:1.5px solid ${rankColors[i]}44;border-radius:14px;padding:14px 10px;text-align:center;position:relative;overflow:hidden;">
-                    <div style="font-size:28px;margin-bottom:4px;">${medals[i]}</div>
-                    <div style="font-size:13px;font-weight:800;color:var(--text);line-height:1.2;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(r.nama||'-')}</div>
-                    <div style="font-size:22px;font-weight:900;color:${rankColors[i]};line-height:1.1;">${r.total_sholat}</div>
-                    <div style="font-size:10px;color:var(--text3);font-weight:700;">sholat</div>
-                    <div style="margin-top:8px;height:4px;background:var(--surface3);border-radius:99px;overflow:hidden;">
-                        <div style="height:100%;width:${pct}%;background:${rankColors[i]};border-radius:99px;"></div>
-                    </div>
-                    <div style="font-size:10px;color:var(--text3);font-weight:700;margin-top:4px;">${pct}%</div>
-                </div>`;
+                html += `<div style="background:${rankBg[i]};border:1.5px solid ${rankColors[i]}44;border-radius:14px;padding:14px 10px;text-align:center;position:relative;overflow:hidden;"><div style="font-size:28px;margin-bottom:4px;">${medals[i]}</div><div style="font-size:13px;font-weight:800;color:var(--text);line-height:1.2;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(r.nama||'-')}</div><div style="font-size:22px;font-weight:900;color:${rankColors[i]};line-height:1.1;">${r.total_sholat}</div><div style="font-size:10px;color:var(--text3);font-weight:700;">sholat</div><div style="margin-top:8px;height:4px;background:var(--surface3);border-radius:99px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${rankColors[i]};border-radius:99px;"></div></div><div style="font-size:10px;color:var(--text3);font-weight:700;margin-top:4px;">${pct}%</div></div>`;
             });
-            html += `</div></div>`;
+            html += `</div></div><div style="display:flex;flex-direction:column;gap:8px;">`;
 
-            // ── ALL RANKINGS ──
-            html += `<div style="display:flex;flex-direction:column;gap:8px;">`;
             data.forEach((r, index) => {
-                const isTop3 = index < 3;
-                const rankLabel = index < 3 ? `${medals[index]} Peringkat ${index+1}` : `#${index+1}`;
-                const rankColor = index < 3 ? rankColors[index] : 'var(--text3)';
-                const maxSholat = (r.detail_harian || []).length * 5 || 35;
+                const isTop3 = index < 3, rankColor = index < 3 ? rankColors[index] : 'var(--text3)';
+                const maxSholat = (r.detail_harian || []).filter(h => !h.haid).length * 5 || 35;
                 const pct = maxSholat ? Math.round(r.total_sholat / maxSholat * 100) : 0;
                 const barColor = pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--gold)' : 'var(--red-light)';
                 const uid = (r.uid || r.email || '').replace(/[^a-z0-9]/gi,'') + index;
 
-                html += `<div style="border:1.5px solid ${isTop3 ? rankColors[index]+'55' : 'var(--border)'};border-radius:var(--r-sm);overflow:hidden;">
-                    <div onclick="toggleCard('sc-${uid}')" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface2);cursor:pointer;">
-                        <div style="width:32px;height:32px;border-radius:10px;background:${isTop3 ? rankColors[index]+'22' : 'var(--surface3)'};display:flex;align-items:center;justify-content:center;font-size:${isTop3?'16':'13'}px;font-weight:900;color:${rankColor};flex-shrink:0;">${index < 3 ? medals[index] : index+1}</div>
-                        <div style="flex:1;min-width:0;">
-                            <div style="font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(r.nama||'-')}</div>
-                            <div style="margin-top:5px;height:4px;background:var(--surface3);border-radius:99px;overflow:hidden;">
-                                <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,${barColor},${barColor}99);border-radius:99px;transition:width 0.6s ease;"></div>
-                            </div>
-                        </div>
-                        <div style="text-align:right;flex-shrink:0;">
-                            <div style="font-size:16px;font-weight:900;color:${barColor};">${r.total_sholat}</div>
-                            <div style="font-size:10px;color:var(--text3);font-weight:700;">${pct}%</div>
-                        </div>
-                    </div>
-                    <div id="sc-${uid}" class="rsc-body">
-                        <div style="font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Detail Waktu Ceklis</div>`;
+                html += `<div style="border:1.5px solid ${isTop3 ? rankColors[index]+'55' : 'var(--border)'};border-radius:var(--r-sm);overflow:hidden;"><div onclick="toggleCard('sc-${uid}')" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface2);cursor:pointer;"><div style="width:32px;height:32px;border-radius:10px;background:${isTop3 ? rankColors[index]+'22' : 'var(--surface3)'};display:flex;align-items:center;justify-content:center;font-size:${isTop3?'16':'13'}px;font-weight:900;color:${rankColor};flex-shrink:0;">${index < 3 ? medals[index] : index+1}</div><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(r.nama||'-')}</div><div style="margin-top:5px;height:4px;background:var(--surface3);border-radius:99px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,${barColor},${barColor}99);border-radius:99px;transition:width 0.6s ease;"></div></div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:16px;font-weight:900;color:${barColor};">${r.total_sholat}</div><div style="font-size:10px;color:var(--text3);font-weight:700;">${pct}%</div></div></div><div id="sc-${uid}" class="rsc-body"><div style="font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;">Detail Waktu Ceklis</div>`;
 
                 (r.detail_harian || []).forEach(d => {
-                    const w = d.waktu_ceklis || {};
-                    const s = d.sholat || {};
-                    const dayTotal = pKeys.filter(p => s[p]).length;
-                    const dayColor = dayTotal >= 5 ? 'var(--green)' : dayTotal >= 3 ? 'var(--gold)' : 'var(--red-light)';
-                    html += `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(196,30,58,0.07);">
-                        <span style="width:54px;font-size:10px;font-weight:700;color:var(--text3);flex-shrink:0;">${d.tanggal.substring(5)}</span>
-                        <div style="display:flex;gap:4px;flex:1;">`;
-                    pKeys.forEach(p => {
-                        const done = s[p];
-                        const waktu = w[p] || '';
-                        html += `<div title="${p}${waktu?' · '+waktu:''}" style="flex:1;padding:4px 2px;border-radius:6px;background:${done?'rgba(46,204,113,0.15)':'rgba(196,30,58,0.1)'};text-align:center;">
-                            <div style="font-size:12px;">${pEmoji[p]}</div>
-                            <div style="font-size:8px;font-weight:700;color:${done?'var(--green)':'var(--text3)'};">${waktu||'—'}</div>
-                        </div>`;
-                    });
-                    html += `</div><span style="font-size:12px;font-weight:800;color:${dayColor};flex-shrink:0;">${dayTotal}/5</span></div>`;
+                    if(d.haid) {
+                        html += `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(196,30,58,0.07);"><span style="width:54px;font-size:10px;font-weight:700;color:var(--text3);flex-shrink:0;">${d.tanggal.substring(5)}</span><div style="flex:1; text-align:center; padding:4px; border-radius:6px; background:rgba(196,30,58,0.1); color:var(--red); font-size:11px; font-weight:800;">Sedang Haid 🩸</div></div>`;
+                    } else {
+                        const w = d.waktu_ceklis || {}, s = d.sholat || {}, jam = d.jamaah || {};
+                        const dayTotal = pKeys.filter(p => s[p]).length;
+                        const dayColor = dayTotal >= 5 ? 'var(--green)' : dayTotal >= 3 ? 'var(--gold)' : 'var(--red-light)';
+                        html += `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(196,30,58,0.07);"><span style="width:54px;font-size:10px;font-weight:700;color:var(--text3);flex-shrink:0;">${d.tanggal.substring(5)}</span><div style="display:flex;gap:4px;flex:1;">`;
+                        pKeys.forEach(p => {
+                            const done = s[p], waktu = w[p] || '', statusJ = jam[p];
+                            let jIcon = done ? (statusJ==='berjamaah'?'👥':(statusJ==='sendiri'?'👤':'✅')) : '';
+                            html += `<div title="${p}${waktu?' · '+waktu:''}" style="flex:1;padding:4px 2px;border-radius:6px;background:${done?'rgba(46,204,113,0.15)':'rgba(196,30,58,0.1)'};text-align:center;"><div style="font-size:12px;">${pEmoji[p]}${jIcon}</div><div style="font-size:8px;font-weight:700;color:${done?'var(--green)':'var(--text3)'};">${waktu||'—'}</div></div>`;
+                        });
+                        html += `</div><span style="font-size:12px;font-weight:800;color:${dayColor};flex-shrink:0;">${dayTotal}/5</span></div>`;
+                    }
                 });
-
                 html += `</div></div>`;
             });
-            html += `</div>`;
-            el.innerHTML = html;
+            html += `</div>`; el.innerHTML = html;
         }
 
-
-        // ── Load settings ──
         async function loadSettings() {
-            try {
-                const res = await fetch('/api/settings');
-                const data = await res.json();
-                selectedTol = data.tolerance_minutes || 60;
-                document.querySelectorAll('.tol-btn').forEach(b => {
-                    b.classList.toggle('active', parseInt(b.dataset.val) === selectedTol);
-                });
-            } catch (e) { }
+            try { const res = await fetch('/api/settings'); const data = await res.json(); selectedTol = data.tolerance_minutes || 60; document.querySelectorAll('.tol-btn').forEach(b => { b.classList.toggle('active', parseInt(b.dataset.val) === selectedTol); }); } catch (e) { }
         }
 
-        function selectTol(val) {
-            selectedTol = val;
-            document.querySelectorAll('.tol-btn').forEach(b => {
-                b.classList.toggle('active', parseInt(b.dataset.val) === val);
-            });
-        }
+        function selectTol(val) { selectedTol = val; document.querySelectorAll('.tol-btn').forEach(b => { b.classList.toggle('active', parseInt(b.dataset.val) === val); }); }
 
         async function saveTol() {
             const statusEl = document.getElementById('tol-status');
             try {
-                const res = await fetch('/api/settings', {
-                    method: 'POST',
-                    headers: HEADERS,
-                    body: JSON.stringify({ tolerance_minutes: selectedTol }),
-                });
-                const data = await res.json();
-                statusEl.textContent = data.message || 'Tersimpan';
-                statusEl.style.display = 'block';
-                statusEl.style.color = '#2ecc71';
-                setTimeout(() => statusEl.style.display = 'none', 3000);
-            } catch (e) {
-                statusEl.textContent = 'Gagal menyimpan';
-                statusEl.style.display = 'block';
-                statusEl.style.color = '#e8354d';
-            }
+                const res = await fetch('/api/settings', { method: 'POST', headers: HEADERS, body: JSON.stringify({ tolerance_minutes: selectedTol }) });
+                const data = await res.json(); statusEl.textContent = data.message || 'Tersimpan'; statusEl.style.display = 'block'; statusEl.style.color = '#2ecc71'; setTimeout(() => statusEl.style.display = 'none', 3000);
+            } catch (e) { statusEl.textContent = 'Gagal menyimpan'; statusEl.style.display = 'block'; statusEl.style.color = '#e8354d'; }
         }
 
-        // ── Load harian students ──
         async function loadStudents() {
             const emptyEl = document.getElementById('table-empty');
             try {
                 const res = await fetch('/api/students?limit=10000', { headers: HEADERS });
-                const json = await res.json();
-                allRecords = json.data || [];
-                renderTable(allRecords);
-            } catch (e) {
-                emptyEl.textContent = 'Gagal memuat data';
-            }
+                const json = await res.json(); allRecords = json.data || []; renderTable(allRecords);
+            } catch (e) { emptyEl.textContent = 'Gagal memuat data'; }
         }
 
         function renderTable(records) {
-            const tbody = document.getElementById('student-tbody');
-            const emptyEl = document.getElementById('table-empty');
-            if (!records.length) {
-                tbody.innerHTML = '';
-                emptyEl.textContent = 'Belum ada data';
-                emptyEl.style.display = 'block';
-                return;
-            }
+            const tbody = document.getElementById('student-tbody'), emptyEl = document.getElementById('table-empty');
+            if (!records.length) { tbody.innerHTML = ''; emptyEl.textContent = 'Belum ada data'; emptyEl.style.display = 'block'; return; }
             emptyEl.style.display = 'none';
             tbody.innerHTML = records.map(r => {
-                const s = r.sholat || {};
-                const badge = (v) => v
-                    ? '<span class="badge-ya">Ya</span>'
-                    : '<span class="badge-tidak">-</span>';
-                const statusBadge = r.finalized
-                    ? '<span class="badge-ya">Selesai</span>'
-                    : '<span class="badge-tidak">Belum</span>';
-                const alasan = r.alasan
-                    ? `<span style="font-size:11px; color:var(--gold); font-style:italic;" title="${esc(r.alasan)}">${esc(r.alasan.length > 30 ? r.alasan.substring(0, 30) + '…' : r.alasan)}</span>`
-                    : '<span style="color:var(--text3); font-size:11px;">—</span>';
-                return `<tr>
-                    <td>${esc(r.nama || '-')}</td>
-                    <td>${esc(r.email || '-')}</td>
-                    <td>${esc(r.tanggal || '-')}</td>
-                    <td>${badge(s.subuh)}</td>
-                    <td>${badge(s.dzuhur)}</td>
-                    <td>${badge(s.ashar)}</td>
-                    <td>${badge(s.maghrib)}</td>
-                    <td>${badge(s.isya)}</td>
-                </tr>`;
+                if(r.haid) {
+                    return `<tr><td>${esc(r.nama || '-')}</td><td>${esc(r.email || '-')}</td><td>${esc(r.tanggal || '-')}</td><td colspan="6" style="text-align:center;"><span class="badge-haid">Sedang Haid 🩸</span></td></tr>`;
+                }
+                const s = r.sholat || {}, j = r.jamaah || {};
+                const badge = (v, jam) => {
+                    if(!v) return '<span class="badge-tidak">-</span>';
+                    if(jam === 'berjamaah') return '<span class="badge-ya jamaah">Ya (Jamaah)</span>';
+                    if(jam === 'sendiri') return '<span class="badge-ya sendiri">Ya (Sendiri)</span>';
+                    return '<span class="badge-ya">Ya</span>';
+                };
+                const alasan = r.alasan ? `<span style="font-size:11px; color:var(--gold); font-style:italic;" title="${esc(r.alasan)}">${esc(r.alasan.length > 25 ? r.alasan.substring(0, 25) + '…' : r.alasan)}</span>` : '<span style="color:var(--text3); font-size:11px;">—</span>';
+                return `<tr><td>${esc(r.nama || '-')}</td><td>${esc(r.email || '-')}</td><td>${esc(r.tanggal || '-')}</td><td>${badge(s.subuh, j.subuh)}</td><td>${badge(s.dzuhur, j.dzuhur)}</td><td>${badge(s.ashar, j.ashar)}</td><td>${badge(s.maghrib, j.maghrib)}</td><td>${badge(s.isya, j.isya)}</td><td>${alasan}</td></tr>`;
             }).join('');
         }
 
-        function filterTable() {
-            const q = document.getElementById('filter-input').value.toLowerCase();
-            renderTable(allRecords.filter(r =>
-                (r.nama || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q)
-            ));
-        }
+        function filterTable() { const q = document.getElementById('filter-input').value.toLowerCase(); renderTable(allRecords.filter(r => (r.nama || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q))); }
 
-        // ── Weekly ──
         async function loadWeekly() {
             document.getElementById('weekly-content').innerHTML = '<div class="table-empty">Memuat data mingguan...</div>';
-            try {
-                const res = await fetch('/api/weekly', { headers: HEADERS });
-                const json = await res.json();
-                weeklyData = json.data || [];
-                renderWeekly(weeklyData);
-            } catch (e) {
-                document.getElementById('weekly-content').innerHTML = '<div class="table-empty">Gagal memuat data</div>';
-            }
+            try { const res = await fetch('/api/weekly', { headers: HEADERS }); const json = await res.json(); weeklyData = json.data || []; renderWeekly(weeklyData); } catch (e) { document.getElementById('weekly-content').innerHTML = '<div class="table-empty">Gagal memuat data</div>'; }
         }
 
-        function filterWeekly() {
-            const q = document.getElementById('filter-mingguan').value.toLowerCase();
-            renderWeekly(weeklyData.filter(r =>
-                (r.nama || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q)
-            ));
-        }
+        function filterWeekly() { const q = document.getElementById('filter-mingguan').value.toLowerCase(); renderWeekly(weeklyData.filter(r => (r.nama || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q))); }
 
         function renderWeekly(data) {
             const el = document.getElementById('weekly-content');
             if (!data.length) { el.innerHTML = '<div class="table-empty">Belum ada data</div>'; return; }
 
-            // Group by minggu
-            const byWeek = {};
-            data.forEach(r => {
-                if (!byWeek[r.minggu]) byWeek[r.minggu] = { label: r.minggu_label, rows: [] };
-                byWeek[r.minggu].rows.push(r);
-            });
-
-            const prayerKeys = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
-            const prayerEmoji = { subuh: '🌙', dzuhur: '☀️', ashar: '🌤️', maghrib: '🌇', isya: '🌃' };
+            const byWeek = {}; data.forEach(r => { if (!byWeek[r.minggu]) byWeek[r.minggu] = { label: r.minggu_label, rows: [] }; byWeek[r.minggu].rows.push(r); });
+            const prayerKeys = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'], prayerEmoji = { subuh: '🌙', dzuhur: '☀️', ashar: '🌤️', maghrib: '🌇', isya: '🌃' };
 
             let html = '';
             Object.keys(byWeek).sort().reverse().forEach(wk => {
                 const { label, rows } = byWeek[wk];
-                html += `<div style="margin-bottom:18px;">
-                    <div style="font-size:11px; font-weight:800; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--border);">📅 ${esc(label)}</div>`;
+                html += `<div style="margin-bottom:18px;"><div style="font-size:11px; font-weight:800; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--border);">📅 ${esc(label)}</div>`;
 
                 rows.forEach(r => {
-                    const pct = r.persen;
-                    const color = pct >= 80 ? '#2ecc71' : pct >= 50 ? 'var(--gold)' : 'var(--red-light)';
-                    const uid = (r.uid || r.email || '').replace(/[^a-z0-9]/gi, '');
-                    html += `<div class="report-student-card">
-                        <div class="rsc-header" onclick="toggleCard('rsc-${uid}-${wk.replace('-', '_')}')">
-                            <div>
-                                <div class="rsc-name">${esc(r.nama || '-')}</div>
-                                <div class="rsc-email">${esc(r.email || '-')}</div>
-                                <div class="mini-track" style="width:140px">
-                                    <div class="mini-fill" style="width:${pct}%; background:linear-gradient(90deg,${color},${color}88)"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="rsc-badge" style="background:${pct >= 80 ? 'rgba(46,204,113,0.15)' : pct >= 50 ? 'rgba(196,154,60,0.15)' : 'rgba(196,30,58,0.15)'}; color:${color};">${r.total_sholat}/${r.max_sholat} sholat</div>
-                                <div style="text-align:right; font-size:11px; color:var(--text3); margin-top:4px;">${pct}% • ${r.total_hari} hari</div>
-                            </div>
-                        </div>
-                        <div class="rsc-body" id="rsc-${uid}-${wk.replace('-', '_')}">`;
+                    const pct = r.persen, color = pct >= 80 ? '#2ecc71' : pct >= 50 ? 'var(--gold)' : 'var(--red-light)', uid = (r.uid || r.email || '').replace(/[^a-z0-9]/gi, '');
+                    html += `<div class="report-student-card"><div class="rsc-header" onclick="toggleCard('rsc-${uid}-${wk.replace('-', '_')}')"><div><div class="rsc-name">${esc(r.nama || '-')}</div><div class="rsc-email">${esc(r.email || '-')}</div><div class="mini-track" style="width:140px"><div class="mini-fill" style="width:${pct}%; background:linear-gradient(90deg,${color},${color}88)"></div></div></div><div><div class="rsc-badge" style="background:${pct >= 80 ? 'rgba(46,204,113,0.15)' : pct >= 50 ? 'rgba(196,154,60,0.15)' : 'rgba(196,30,58,0.15)'}; color:${color};">${r.total_sholat}/${r.max_sholat} sholat</div><div style="text-align:right; font-size:11px; color:var(--text3); margin-top:4px;">${pct}% • ${r.total_hari} hari</div></div></div><div class="rsc-body" id="rsc-${uid}-${wk.replace('-', '_')}">`;
 
                     r.detail.forEach(d => {
-                        const tanggalFmt = d.tanggal.substring(5); // MM-DD
-                        html += `<div class="detail-row">
-                            <span class="detail-tanggal">${tanggalFmt}</span>
-                            <div class="detail-prayers">`;
-                        prayerKeys.forEach(p => {
-                            const done = d.sholat && d.sholat[p];
-                            html += `<div class="dp-dot ${done ? 'done' : 'miss'}" title="${p}">${prayerEmoji[p]}</div>`;
-                        });
-                        html += `<span style="font-size:11px; font-weight:700; color:${d.total >= 5 ? '#2ecc71' : d.total >= 3 ? 'var(--gold)' : 'var(--red-light)'}; margin-left:6px;">${d.total}/5</span>`;
-                        html += `</div></div>`;
-                        if (d.alasan) {
-                            html += `<div class="detail-alasan">💬 "${esc(d.alasan)}"</div>`;
+                        const tanggalFmt = d.tanggal.substring(5);
+                        html += `<div class="detail-row"><span class="detail-tanggal">${tanggalFmt}</span><div class="detail-prayers">`;
+                        if(d.haid) {
+                            html += `<div style="flex:1; text-align:center; padding:2px; font-size:11px; font-weight:800; color:var(--red); background:rgba(196,30,58,0.1); border-radius:6px;">Sedang Haid 🩸</div>`;
+                        } else {
+                            prayerKeys.forEach(p => {
+                                const done = d.sholat && d.sholat[p], jam = d.jamaah && d.jamaah[p];
+                                let pIcon = prayerEmoji[p];
+                                if(done) pIcon += jam==='berjamaah'?'👥':(jam==='sendiri'?'👤':'');
+                                html += `<div class="dp-dot ${done ? 'done' : 'miss'}" title="${p}">${pIcon}</div>`;
+                            });
+                            html += `<span style="font-size:11px; font-weight:700; color:${d.total >= 5 ? '#2ecc71' : d.total >= 3 ? 'var(--gold)' : 'var(--red-light)'}; margin-left:6px;">${d.total}/5</span>`;
                         }
+                        html += `</div></div>`;
+                        if (d.alasan && !d.haid) html += `<div class="detail-alasan">💬 "${esc(d.alasan)}"</div>`;
                     });
-
                     html += `</div></div>`;
                 });
                 html += `</div>`;
@@ -1047,92 +407,48 @@
             el.innerHTML = html;
         }
 
-        // ── Monthly ──
         async function loadMonthly() {
             document.getElementById('monthly-content').innerHTML = '<div class="table-empty">Memuat data bulanan...</div>';
-            try {
-                const res = await fetch('/api/monthly', { headers: HEADERS });
-                const json = await res.json();
-                monthlyData = json.data || [];
-                renderMonthly(monthlyData);
-            } catch (e) {
-                document.getElementById('monthly-content').innerHTML = '<div class="table-empty">Gagal memuat data</div>';
-            }
+            try { const res = await fetch('/api/monthly', { headers: HEADERS }); const json = await res.json(); monthlyData = json.data || []; renderMonthly(monthlyData); } catch (e) { document.getElementById('monthly-content').innerHTML = '<div class="table-empty">Gagal memuat data</div>'; }
         }
 
-        function filterMonthly() {
-            const q = document.getElementById('filter-bulanan').value.toLowerCase();
-            renderMonthly(monthlyData.filter(r =>
-                (r.nama || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q)
-            ));
-        }
+        function filterMonthly() { const q = document.getElementById('filter-bulanan').value.toLowerCase(); renderMonthly(monthlyData.filter(r => (r.nama || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q))); }
 
         function renderMonthly(data) {
             const el = document.getElementById('monthly-content');
             if (!data.length) { el.innerHTML = '<div class="table-empty">Belum ada data</div>'; return; }
 
-            const prayerKeys = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
-            const prayerEmoji = { subuh: '🌙', dzuhur: '☀️', ashar: '🌤️', maghrib: '🌇', isya: '🌃' };
-
-            // Group by bulan
-            const byMonth = {};
-            data.forEach(r => {
-                if (!byMonth[r.bulan]) byMonth[r.bulan] = { label: r.bulan_label, rows: [] };
-                byMonth[r.bulan].rows.push(r);
-            });
+            const prayerKeys = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya'], prayerEmoji = { subuh: '🌙', dzuhur: '☀️', ashar: '🌤️', maghrib: '🌇', isya: '🌃' };
+            const byMonth = {}; data.forEach(r => { if (!byMonth[r.bulan]) byMonth[r.bulan] = { label: r.bulan_label, rows: [] }; byMonth[r.bulan].rows.push(r); });
 
             let html = '';
             Object.keys(byMonth).sort().reverse().forEach(bk => {
                 const { label, rows } = byMonth[bk];
-                html += `<div style="margin-bottom:18px;">
-                    <div style="font-size:11px; font-weight:800; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--border);">🗓️ ${esc(label)}</div>`;
+                html += `<div style="margin-bottom:18px;"><div style="font-size:11px; font-weight:800; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; padding-bottom:6px; border-bottom:1px solid var(--border);">🗓️ ${esc(label)}</div>`;
 
-                // Summary bar per student
                 rows.forEach(r => {
-                    const pct = r.persen;
-                    const color = pct >= 80 ? '#2ecc71' : pct >= 50 ? 'var(--gold)' : 'var(--red-light)';
-                    const uid = (r.uid || r.email || '').replace(/[^a-z0-9]/gi, '');
-                    const alasanList = r.detail.filter(d => d.alasan);
+                    const pct = r.persen, color = pct >= 80 ? '#2ecc71' : pct >= 50 ? 'var(--gold)' : 'var(--red-light)', uid = (r.uid || r.email || '').replace(/[^a-z0-9]/gi, '');
+                    const alasanList = r.detail.filter(d => d.alasan && !d.haid);
+                    const haidList = r.detail.filter(d => d.haid);
 
-                    html += `<div class="report-student-card">
-                        <div class="rsc-header" onclick="toggleCard('rsc-m-${uid}-${bk}')">
-                            <div>
-                                <div class="rsc-name">${esc(r.nama || '-')}</div>
-                                <div class="rsc-email">${esc(r.email || '-')}</div>
-                                <div class="mini-track" style="width:140px">
-                                    <div class="mini-fill" style="width:${pct}%; background:linear-gradient(90deg,${color},${color}88)"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="rsc-badge" style="background:${pct >= 80 ? 'rgba(46,204,113,0.15)' : pct >= 50 ? 'rgba(196,154,60,0.15)' : 'rgba(196,30,58,0.15)'}; color:${color};">${r.total_sholat}/${r.max_sholat}</div>
-                                <div style="text-align:right; font-size:11px; color:var(--text3); margin-top:4px;">${pct}% • ${r.total_hari} hari</div>
-                            </div>
-                        </div>
-                        <div class="rsc-body" id="rsc-m-${uid}-${bk}">`;
+                    html += `<div class="report-student-card"><div class="rsc-header" onclick="toggleCard('rsc-m-${uid}-${bk}')"><div><div class="rsc-name">${esc(r.nama || '-')}</div><div class="rsc-email">${esc(r.email || '-')}</div><div class="mini-track" style="width:140px"><div class="mini-fill" style="width:${pct}%; background:linear-gradient(90deg,${color},${color}88)"></div></div></div><div><div class="rsc-badge" style="background:${pct >= 80 ? 'rgba(46,204,113,0.15)' : pct >= 50 ? 'rgba(196,154,60,0.15)' : 'rgba(196,30,58,0.15)'}; color:${color};">${r.total_sholat}/${r.max_sholat}</div><div style="text-align:right; font-size:11px; color:var(--text3); margin-top:4px;">${pct}% • ${r.total_hari} hari</div></div></div><div class="rsc-body" id="rsc-m-${uid}-${bk}">`;
 
-                    // Per prayer summary
                     html += `<div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">`;
                     prayerKeys.forEach(p => {
-                        const total = r.detail.filter(d => d.sholat && d.sholat[p]).length;
-                        const max = r.total_hari;
+                        const total = r.detail.filter(d => d.sholat && d.sholat[p] && !d.haid).length;
+                        const max = r.total_hari - haidList.length;
                         const pp = max ? Math.round(total / max * 100) : 0;
-                        html += `<div style="flex:1; min-width:56px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 6px; text-align:center;">
-                            <div style="font-size:16px;">${prayerEmoji[p]}</div>
-                            <div style="font-size:10px; font-weight:800; color:var(--text2); margin-top:3px;">${total}/${max}</div>
-                            <div style="font-size:9px; color:${pp >= 80 ? '#2ecc71' : pp >= 50 ? 'var(--gold)' : 'var(--red-light)'}; font-weight:700;">${pp}%</div>
-                        </div>`;
+                        html += `<div style="flex:1; min-width:56px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 6px; text-align:center;"><div style="font-size:16px;">${prayerEmoji[p]}</div><div style="font-size:10px; font-weight:800; color:var(--text2); margin-top:3px;">${total}/${max}</div><div style="font-size:9px; color:${pp >= 80 ? '#2ecc71' : pp >= 50 ? 'var(--gold)' : 'var(--red-light)'}; font-weight:700;">${pp}%</div></div>`;
                     });
                     html += `</div>`;
 
-                    // Alasan list
+                    if(haidList.length) {
+                        html += `<div style="font-size:10.5px; font-weight:800; color:var(--red); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">🩸 Sedang Haid: ${haidList.length} Hari</div>`;
+                    }
+
                     if (alasanList.length) {
                         html += `<div style="font-size:10.5px; font-weight:800; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">💬 Catatan Alasan</div>`;
-                        alasanList.forEach(d => {
-                            html += `<div style="margin-bottom:6px; padding:8px 10px; background:rgba(196,154,60,0.08); border:1px solid rgba(196,154,60,0.2); border-radius:8px;">
-                                <span style="font-size:10px; font-weight:700; color:var(--text3);">${d.tanggal}</span>
-                                <div style="font-size:12px; color:var(--gold); font-style:italic; margin-top:2px;">"${esc(d.alasan)}"</div>
-                            </div>`;
-                        });
+                        alasanList.forEach(d => { html += `<div style="margin-bottom:6px; padding:8px 10px; background:rgba(196,154,60,0.08); border:1px solid rgba(196,154,60,0.2); border-radius:8px;"><span style="font-size:10px; font-weight:700; color:var(--text3);">${d.tanggal}</span><div style="font-size:12px; color:var(--gold); font-style:italic; margin-top:2px;">"${esc(d.alasan)}"</div></div>`; });
                     }
 
                     html += `</div></div>`;
@@ -1142,52 +458,21 @@
             el.innerHTML = html;
         }
 
-        function toggleCard(id) {
-            const el = document.getElementById(id);
-            if (el) el.classList.toggle('open');
-        }
+        function toggleCard(id) { const el = document.getElementById(id); if (el) el.classList.toggle('open'); }
+        function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-        function filterTable() {
-            const q = document.getElementById('filter-input').value.toLowerCase();
-            renderTable(allRecords.filter(r =>
-                (r.nama || '').toLowerCase().includes(q) || (r.email || '').toLowerCase().includes(q)
-            ));
-        }
-
-        function esc(s) {
-            const d = document.createElement('div');
-            d.textContent = s;
-            return d.innerHTML;
-        }
-
-        // ── Export ──
         async function exportExcel() {
             try {
                 const res = await fetch('/api/export', { headers: HEADERS });
                 if (!res.ok) throw new Error();
-                const blob = await res.blob();
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = 'laporan_sholat.xlsx';
-                a.click();
-                URL.revokeObjectURL(a.href);
-            } catch (e) {
-                alert('Gagal export data');
-            }
+                const blob = await res.blob(), a = document.createElement('a');
+                a.href = URL.createObjectURL(blob); a.download = 'laporan_sholat.xlsx'; a.click(); URL.revokeObjectURL(a.href);
+            } catch (e) { alert('Gagal export data'); }
         }
 
-        // ── Logout ──
-        function logout() {
-            sessionStorage.removeItem('adminToken');
-            // Hapus cookie sesi di server
-            fetch('/admin/logout', { method: 'POST' }).finally(() => {
-                window.location.href = 'admin-login.html';
-            });
-        }
+        function logout() { sessionStorage.removeItem('adminToken'); fetch('/admin/logout', { method: 'POST' }).finally(() => { window.location.href = 'admin-login.html'; }); }
 
-        // ── Init ──
-        loadSettings();
-        loadStudents();
+        loadSettings(); loadStudents();
     </script>
 </body>
 

@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 
 VALID_PRAYERS = ['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya']
 
+
 class Database:
     def __init__(self):
         url = os.environ.get('MONGODB_URI')
@@ -23,7 +24,7 @@ class Database:
         except Exception as e:
             logger.warning("Gagal membuat index: %s", e)
 
-    def check_prayer(self, uid, email, nama, tanggal, prayer, checked, jamaah_status=None):
+    def check_prayer(self, uid, email, nama, tanggal, prayer, checked):
         if prayer not in VALID_PRAYERS:
             return False, "Sholat tidak valid"
             
@@ -35,16 +36,11 @@ class Database:
             f"sholat.{prayer}": bool(checked),
             "email": email,
             "nama": nama,
-            "haid": False  # Jika sedang ceklis sholat, berarti otomatis bukan haid
         }
         
+        # Rekam jam ceklis hanya jika statusnya dicentang (True)
         if checked:
             update_fields[f"waktu_ceklis.{prayer}"] = waktu_sekarang
-            if jamaah_status:
-                update_fields[f"jamaah.{prayer}"] = jamaah_status
-        else:
-            # Bersihkan status jamaah jika sholat di-uncheck
-            update_fields[f"jamaah.{prayer}"] = None
 
         self.collection.update_one(
             {"uid": uid, "tanggal": tanggal},
@@ -53,27 +49,9 @@ class Database:
         )
         return True, "OK"
     
-    def set_haid(self, uid, email, nama, tanggal, is_haid):
-        update_fields = {
-            "haid": bool(is_haid),
-            "email": email,
-            "nama": nama,
-            "tanggal": tanggal
-        }
-        if is_haid:
-            # Kosongkan sholat jika haid
-            update_fields["sholat"] = {p: False for p in VALID_PRAYERS}
-            update_fields["jamaah"] = {}
-            update_fields["waktu_ceklis"] = {}
-            
-        self.collection.update_one(
-            {"uid": uid, "tanggal": tanggal},
-            {"$set": update_fields},
-            upsert=True
-        )
-        return True, "OK"
-
     def get_statistik_lomba(self, start_date='', end_date=''):
+        """Menghitung total sholat dan merekap waktu ceklis untuk penentuan juara.
+        Jika start_date dan end_date kosong, ambil semua data (keseluruhan)."""
         match_filter = {}
         if start_date or end_date:
             date_q = {}
@@ -104,8 +82,6 @@ class Database:
                     "$push": {
                         "tanggal": "$tanggal",
                         "sholat": "$sholat",
-                        "jamaah": "$jamaah",
-                        "haid": "$haid",
                         "waktu_ceklis": "$waktu_ceklis",
                         "alasan": "$alasan"
                     }
@@ -121,15 +97,13 @@ class Database:
             {"_id": 0}
         )
         if not doc:
-            return {"sholat": {p: False for p in VALID_PRAYERS}, "jamaah": {}, "haid": False, "finalized": False, "nama": ""}
+            return {"sholat": {p: False for p in VALID_PRAYERS}, "finalized": False, "nama": ""}
         sholat = doc.get("sholat", {})
         for p in VALID_PRAYERS:
             if p not in sholat:
                 sholat[p] = False
         return {
             "sholat": sholat,
-            "jamaah": doc.get("jamaah", {}),
-            "haid": doc.get("haid", False),
             "finalized": doc.get("finalized", False),
             "nama": doc.get("nama", ""),
             "alasan": doc.get("alasan", ""),
@@ -141,6 +115,29 @@ class Database:
             {"$set": {"finalized": True}}
         )
         return result.modified_count > 0 or result.matched_count > 0
+
+    def sholat(self, tanggal, subuh, dzuhur, ashar, maghrib, isya, uid, email, nama=''):
+        if not uid:
+            return False, "UID tidak valid"
+        result = self.collection.update_one(
+            {"uid": uid, "tanggal": str(tanggal)},
+            {"$set": {
+                "email": email,
+                "nama": nama,
+                "tanggal": str(tanggal),
+                "sholat": {
+                    "subuh": bool(subuh),
+                    "dzuhur": bool(dzuhur),
+                    "ashar": bool(ashar),
+                    "maghrib": bool(maghrib),
+                    "isya": bool(isya),
+                },
+            }},
+            upsert=True,
+        )
+        if result.upserted_id:
+            return True, "Laporan hari ini berhasil disimpan!"
+        return True, "Laporan hari ini berhasil diperbarui!"
 
     def get_settings(self):
         doc = self.settings.find_one({"_id": "app_settings"})
@@ -178,7 +175,8 @@ class Database:
         return docs, total
 
     def save_reason(self, uid, tanggal, reason):
-        reason = reason.strip()[:500] 
+        """Simpan alasan sholat yang terlewat (dikirim saat layar EOD jam 22:00)."""
+        reason = reason.strip()[:500]  # batasi 500 karakter
         result = self.collection.update_one(
             {"uid": uid, "tanggal": tanggal},
             {"$set": {"alasan": reason}},
@@ -187,6 +185,10 @@ class Database:
         return result.matched_count > 0
 
     def get_weekly_summary(self, date_from='', date_to=''):
+        """
+        Kembalikan ringkasan mingguan per siswa.
+        Setiap entry: { nama, email, minggu (YYYY-Www), total_hari, total_sholat, max_sholat, detail: [...] }
+        """
         from datetime import date as date_cls, timedelta
         import math
 
@@ -200,6 +202,8 @@ class Database:
             query["tanggal"] = date_q
 
         docs = list(self.collection.find(query, {"_id": 0}))
+
+        # group by (uid, iso_week)
         from collections import defaultdict
         groups = defaultdict(lambda: {"nama": "", "email": "", "hari": {}})
         for doc in docs:
@@ -209,6 +213,7 @@ class Database:
                 d = date_cls.fromisoformat(tanggal_str)
                 iso = d.isocalendar()
                 week_key = f"{iso.year}-W{str(iso.week).zfill(2)}"
+                # Senin minggu ini
                 week_start = d - timedelta(days=d.weekday())
                 week_label = f"{week_start.strftime('%d %b')} – {(week_start + timedelta(6)).strftime('%d %b %Y')}"
             except Exception:
@@ -219,14 +224,11 @@ class Database:
             groups[key]["minggu"] = week_key
             groups[key]["minggu_label"] = week_label
             sholat = doc.get("sholat", {})
-            haid = doc.get("haid", False)
-            total = sum(1 for v in sholat.values() if v) if not haid else 0
+            total = sum(1 for v in sholat.values() if v)
             groups[key]["hari"][tanggal_str] = {
                 "tanggal": tanggal_str,
                 "total": total,
                 "sholat": sholat,
-                "jamaah": doc.get("jamaah", {}),
-                "haid": haid,
                 "alasan": doc.get("alasan", ""),
             }
 
@@ -252,30 +254,28 @@ class Database:
         return result
 
     def get_today_scoreboard(self, tanggal):
+        """Ambil semua data sholat hari ini, urutkan dari yang paling banyak sholat."""
         docs = list(self.collection.find(
             {"tanggal": tanggal},
-            {"_id": 0, "nama": 1, "sholat": 1, "uid": 1, "haid": 1, "jamaah": 1}
+            {"_id": 0, "nama": 1, "sholat": 1, "uid": 1}
         ))
         result = []
         for doc in docs:
             nama = doc.get("nama", "")
             uid = doc.get("uid", "")
-            haid = doc.get("haid", False)
             sholat = doc.get("sholat", {})
-            jamaah = doc.get("jamaah", {})
-            total = sum(1 for v in sholat.values() if v) if not haid else 0
+            total = sum(1 for v in sholat.values() if v)
             result.append({
                 "nama": nama,
                 "uid": uid,
                 "total": total,
-                "haid": haid,
                 "sholat": {p: sholat.get(p, False) for p in VALID_PRAYERS},
-                "jamaah": jamaah
             })
         result.sort(key=lambda x: (-x["total"], x["nama"]))
         return result
 
     def get_monthly_summary(self, date_from='', date_to=''):
+        """Ringkasan bulanan per siswa."""
         from datetime import date as date_cls
         from collections import defaultdict
 
@@ -306,14 +306,11 @@ class Database:
             groups[key]["bulan"] = month_key
             groups[key]["bulan_label"] = month_label
             sholat = doc.get("sholat", {})
-            haid = doc.get("haid", False)
-            total = sum(1 for v in sholat.values() if v) if not haid else 0
+            total = sum(1 for v in sholat.values() if v)
             groups[key]["hari"][tanggal_str] = {
                 "tanggal": tanggal_str,
                 "total": total,
                 "sholat": sholat,
-                "jamaah": doc.get("jamaah", {}),
-                "haid": haid,
                 "alasan": doc.get("alasan", ""),
             }
 

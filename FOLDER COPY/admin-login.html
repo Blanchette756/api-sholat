@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — Reve</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0d0a0e;
+            --surface: #1a1015;
+            --surface2: #241820;
+            --red: #c41e3a;
+            --red-dark: #8b0000;
+            --red-light: #e8354d;
+            --red-glow: rgba(196, 30, 58, 0.25);
+            --gold: #c49a3c;
+            --text: #e8d5d5;
+            --text2: #a08888;
+            --text3: #6a5555;
+            --border: rgba(196, 30, 58, 0.2);
+            --border2: rgba(196, 30, 58, 0.35);
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+            --r: 18px;
+            --r-sm: 12px;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 28px 16px;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 600px 400px at 50% 0%, rgba(196, 30, 58, 0.08) 0%, transparent 70%),
+                radial-gradient(ellipse 400px 300px at 80% 100%, rgba(139, 0, 0, 0.06) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .wrapper {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            position: relative;
+            z-index: 1;
+        }
+        .header-card {
+            background: linear-gradient(135deg, var(--red-dark) 0%, #1a0510 60%, var(--surface) 100%);
+            border-radius: 26px;
+            padding: 36px 26px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 40px rgba(196, 30, 58, 0.15);
+            border: 1px solid var(--border);
+        }
+        .header-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 30%, rgba(196, 30, 58, 0.12) 0%, transparent 50%);
+        }
+        .header-icon {
+            font-size: 48px;
+            display: block;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 0 20px rgba(196, 30, 58, 0.5));
+            animation: floatIcon 3s ease-in-out infinite;
+        }
+        @keyframes floatIcon { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+        .header-card h1 {
+            font-family: 'Noto Serif', serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 6px;
+            text-shadow: 0 0 30px rgba(196, 30, 58, 0.3);
+        }
+        .header-card p {
+            font-size: 12.5px;
+            color: var(--text2);
+            position: relative;
+            z-index: 1;
+            line-height: 1.6;
+        }
+        .login-card {
+            background: var(--surface);
+            border-radius: var(--r);
+            padding: 28px 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            animation: fadeUp 0.5s ease both;
+        }
+        .login-label {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+        .input-group {
+            margin-bottom: 14px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text2);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 13px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-sm);
+            background: var(--surface2);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            outline: none;
+            transition: all 0.25s ease;
+        }
+        .input-group input::placeholder { color: var(--text3); font-weight: 400; }
+        .input-group input:focus {
+            border-color: var(--red);
+            background: #1e1218;
+            box-shadow: 0 0 0 3px var(--red-glow);
+        }
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: var(--red);
+            color: #fff;
+            border: none;
+            border-radius: var(--r-sm);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14.5px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 16px rgba(196, 30, 58, 0.3);
+            margin-top: 4px;
+        }
+        .btn-login:hover:not(:disabled) {
+            background: var(--red-light);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(196, 30, 58, 0.4);
+        }
+        .btn-login:disabled { opacity: 0.5; cursor: not-allowed; }
+        .login-status {
+            margin-top: 14px;
+            padding: 12px 16px;
+            border-radius: var(--r-sm);
+            font-size: 13px;
+            font-weight: 700;
+            text-align: center;
+            display: none;
+        }
+        .login-status.error {
+            display: block;
+            background: rgba(196, 30, 58, 0.15);
+            border: 1.5px solid var(--border2);
+            color: var(--red-light);
+        }
+        .login-status.loading {
+            display: block;
+            background: rgba(196, 154, 60, 0.1);
+            border: 1.5px solid rgba(196, 154, 60, 0.25);
+            color: var(--gold);
+        }
+        .footer-note {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text3);
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 480px) {
+            body { padding: 16px 12px; }
+            .header-card { padding: 28px 18px 24px; }
+            .login-card { padding: 22px 18px; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="header-card">
+            <span class="header-icon">🐺</span>
+            <h1>Reve Panel</h1>
+            <p>Area terlarang. Hanya yang berwenang.</p>
+        </div>
+
+        <div class="login-card">
+            <p class="login-label">Identifikasi</p>
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Masukkan username" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Masukkan password">
+            </div>
+            <button class="btn-login" id="btn-login">Masuk</button>
+            <div class="login-status" id="login-status"></div>
+        </div>
+
+        <p class="footer-note">Reve Admin Panel v1.0</p>
+        <a href="login.html" style="display:block;text-align:center;font-size:12px;color:var(--text3);margin-top:6px;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--text2)'" onmouseout="this.style.color='var(--text3)'">← Kembali ke Login Siswa</a>
+    </div>
+
+    <script>
+        const statusEl = document.getElementById('login-status');
+        const btn = document.getElementById('btn-login');
+        const passInput = document.getElementById('password');
+
+        passInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') btn.click();
+        });
+
+        btn.addEventListener('click', async () => {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            if (!username || !password) {
+                statusEl.textContent = 'Username dan password wajib diisi';
+                statusEl.className = 'login-status error';
+                return;
+            }
+            btn.disabled = true;
+            statusEl.textContent = 'Memverifikasi...';
+            statusEl.className = 'login-status loading';
+            try {
+                const res = await fetch('/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password }),
+                });
+                const data = await res.json();
+                if (data.status === 'success' && data.token) {
+                    sessionStorage.setItem('adminToken', data.token);
+                    window.location.href = 'admin.html';
+                } else {
+                    statusEl.textContent = data.message || 'Login gagal';
+                    statusEl.className = 'login-status error';
+                }
+            } catch (e) {
+                statusEl.textContent = 'Koneksi gagal';
+                statusEl.className = 'login-status error';
+            }
+            btn.disabled = false;
+        });
+    </script>
+</body>
+
+</html>
