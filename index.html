@@ -52,7 +52,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
                     body: JSON.stringify({ token: token })
-                }).catch(() => {});
+                }).catch(() => { });
 
                 localStorage.setItem('fcmToken', token);
                 updateNotifUI(true);
@@ -67,16 +67,77 @@
             if (enabled) {
                 btn.innerHTML = '🔔 Notifikasi Aktif';
                 btn.style.opacity = '0.7';
+                btn.style.pointerEvents = 'none';
             } else {
                 btn.innerHTML = '🔕 Aktifkan Notifikasi';
                 btn.style.opacity = '1';
+                btn.style.pointerEvents = '';
             }
         }
 
-        window._requestNotif = async function() {
-            const user = auth.currentUser;
-            if (!user) return;
-            await setupFCM(user);
+        window._requestNotif = async function () {
+            const btn = document.getElementById('notif-btn');
+
+            // Jika notifikasi sudah aktif, tidak perlu lanjut
+            if (Notification.permission === 'granted' && localStorage.getItem('fcmToken')) {
+                updateNotifUI(true);
+                return;
+            }
+
+            // Tampilkan status loading di tombol
+            if (btn) {
+                btn.innerHTML = '⏳ Memproses...';
+                btn.style.opacity = '0.6';
+                btn.style.pointerEvents = 'none';
+            }
+
+            try {
+                // Tunggu user siap (max 5 detik)
+                let user = auth.currentUser;
+                if (!user) {
+                    await new Promise((resolve) => {
+                        const unsubscribe = auth.onAuthStateChanged((u) => {
+                            unsubscribe();
+                            user = u;
+                            resolve();
+                        });
+                        setTimeout(resolve, 5000);
+                    });
+                }
+
+                if (!user) {
+                    if (btn) {
+                        btn.innerHTML = '❌ Belum Login';
+                        btn.style.opacity = '1';
+                        setTimeout(() => { btn.innerHTML = '🔕 Aktifkan Notifikasi'; btn.style.pointerEvents = ''; }, 2500);
+                    }
+                    return;
+                }
+
+                await setupFCM(user);
+
+                // Jika setelah setupFCM permission masih belum granted
+                if (Notification.permission === 'denied') {
+                    if (btn) {
+                        btn.innerHTML = '🚫 Notifikasi Diblokir';
+                        btn.style.opacity = '1';
+                        btn.style.pointerEvents = '';
+                    }
+                } else if (Notification.permission !== 'granted') {
+                    if (btn) {
+                        btn.innerHTML = '🔕 Aktifkan Notifikasi';
+                        btn.style.opacity = '1';
+                        btn.style.pointerEvents = '';
+                    }
+                }
+            } catch (e) {
+                console.warn('Notif error:', e);
+                if (btn) {
+                    btn.innerHTML = '🔕 Aktifkan Notifikasi';
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = '';
+                }
+            }
         };
 
         onMessage(messaging, (payload) => {
@@ -1328,8 +1389,10 @@
                 <div class="meta-pill scoreboard-btn" onclick="openScoreboard()" style="cursor:pointer; gap:6px;">
                     <span>🏆</span><span>Papan Skor</span>
                 </div>
-                <div class="meta-pill" id="notif-btn" style="cursor:pointer" onclick="window._requestNotif()">🔕 Aktifkan Notifikasi</div>
-                <div class="meta-pill" style="cursor:pointer" onclick="document.getElementById('creator-modal').classList.add('show')">👤 Profile</div>
+                <div class="meta-pill" id="notif-btn" style="cursor:pointer" onclick="window._requestNotif()">🔕
+                    Aktifkan Notifikasi</div>
+                <div class="meta-pill" style="cursor:pointer"
+                    onclick="document.getElementById('creator-modal').classList.add('show')">👤 Profile</div>
                 <div class="meta-pill" style="cursor:pointer" onclick="window._firebaseSignOut()">🚪 Keluar</div>
             </div>
         </div>
@@ -1500,7 +1563,8 @@
                 <span class="creator-name">Reve</span>
                 <span class="creator-tagline">Crafted with passion & purpose</span>
             </div>
-            <button class="modal-btn modal-btn-cancel" style="width:100%; margin-top:20px;" onclick="document.getElementById('creator-modal').classList.remove('show')">Tutup</button>
+            <button class="modal-btn modal-btn-cancel" style="width:100%; margin-top:20px;"
+                onclick="document.getElementById('creator-modal').classList.remove('show')">Tutup</button>
         </div>
     </div>
 

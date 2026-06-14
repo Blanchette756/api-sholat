@@ -136,7 +136,8 @@ else:
 
 db_manager = Database()
 
-ALLOWED_STATIC = {'index.html', 'login.html', 'style.css', 'admin-login.html', 'Reve.png'}
+# Ubah bagian ini di server.py
+ALLOWED_STATIC = {'index.html', 'login.html', 'style.css', 'admin-login.html', 'Reve.png', 'firebase-messaging-sw.js'}
 
 
 @app.after_request
