@@ -23,7 +23,7 @@ class Database:
         except Exception as e:
             logger.warning("Gagal membuat index: %s", e)
 
-    def check_prayer(self, uid, email, nama, tanggal, prayer, checked, jamaah_status=None):
+    def check_prayer(self, uid, email, nama, npm, program_studi, tanggal, prayer, checked, jamaah_status=None):
         if prayer not in VALID_PRAYERS:
             return False, "Sholat tidak valid"
             
@@ -35,7 +35,9 @@ class Database:
             f"sholat.{prayer}": bool(checked),
             "email": email,
             "nama": nama,
-            "haid": False  # Jika sedang ceklis sholat, berarti otomatis bukan haid
+            "npm": npm,
+            "program_studi": program_studi,
+            "haid": False,
         }
         
         if checked:
@@ -53,11 +55,13 @@ class Database:
         )
         return True, "OK"
     
-    def set_haid(self, uid, email, nama, tanggal, is_haid):
+    def set_haid(self, uid, email, nama, npm, program_studi, tanggal, is_haid):
         update_fields = {
             "haid": bool(is_haid),
             "email": email,
             "nama": nama,
+            "npm": npm,
+            "program_studi": program_studi,
             "tanggal": tanggal
         }
         if is_haid:
