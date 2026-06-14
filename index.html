@@ -1932,7 +1932,18 @@
             try {
                 const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 20000);
                 const token = await window._getIdToken();
-                const res = await fetch('/sholat/finalize', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, signal: controller.signal });
+
+                // Ambil data identitas terbaru saat tombol laporan diklik
+                const nama = document.getElementById('nama').value.trim();
+                const npm = document.getElementById('npm').value;
+                const program_studi = document.getElementById('program-studi').value;
+
+                const res = await fetch('/sholat/finalize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ nama: nama, npm: npm, program_studi: program_studi }),
+                    signal: controller.signal
+                });
                 clearTimeout(timeout); const data = await res.json();
 
                 if (data.status === 'success') {

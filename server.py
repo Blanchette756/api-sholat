@@ -318,8 +318,18 @@ def finalize():
         if not user:
             return jsonify({"status": "error", "message": "Silakan masuk (login) terlebih dahulu"}), 401
 
+        data = request.get_json(silent=True)
+        if not data: data = {}
+        
+        input_nama = data.get('nama', '').strip()
+        npm = data.get('npm', '')
+        program_studi = data.get('program_studi', '')
+
         uid = user.get('uid', '')
+        email = user.get('email', '')
         tanggal = get_wita_date_str()
+        
+        nama_final = input_nama if input_nama else user.get('name', email)
 
         status = db_manager.get_today_status(uid, tanggal)
         haid = status.get('haid', False)
@@ -336,8 +346,8 @@ def finalize():
         else:
             total = 0
 
-        db_manager.finalize_day(uid, tanggal)
-        logger.info("Laporan terselesaikan uid=%s tanggal=%s total=%d haid=%s", uid, tanggal, total, haid)
+        db_manager.finalize_day(uid, tanggal, nama_final, npm, program_studi)
+        logger.info("Laporan terselesaikan uid=%s tanggal=%s total=%d", uid, tanggal, total)
         return jsonify({"status": "success", "message": "Laporan status Haid dikirimkan" if haid else f"Laporan ibadah dikirimkan ({total}/5)"})
     except Exception as e:
         logger.exception("Error pada /sholat/finalize: %s", e)

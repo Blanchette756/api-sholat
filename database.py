@@ -139,10 +139,15 @@ class Database:
             "alasan": doc.get("alasan", ""),
         }
 
-    def finalize_day(self, uid, tanggal):
+    def finalize_day(self, uid, tanggal, nama="", npm="", program_studi=""):
+        update_data = {"finalized": True}
+        if nama: update_data["nama"] = nama
+        if npm: update_data["npm"] = npm
+        if program_studi: update_data["program_studi"] = program_studi
+        
         result = self.collection.update_one(
             {"uid": uid, "tanggal": tanggal},
-            {"$set": {"finalized": True}}
+            {"$set": update_data}
         )
         return result.modified_count > 0 or result.matched_count > 0
 
