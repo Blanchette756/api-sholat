@@ -1208,70 +1208,34 @@
             background: rgba(196, 30, 58, 0.2);
         }
 
-        .creator-card {
-            position: fixed;
-            right: 28px;
-            bottom: 28px;
+        .creator-modal-content {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 12px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 14px 18px;
-            box-shadow: var(--shadow-md);
-            z-index: 50;
-            animation: fadeUp 0.6s ease both;
-            animation-delay: 0.8s;
+            gap: 6px;
         }
 
         .creator-logo {
-            width: 42px;
-            height: 42px;
+            width: 100px;
+            height: 100px;
             object-fit: contain;
-            border-radius: 10px;
-            flex-shrink: 0;
-        }
-
-        .creator-text {
-            display: flex;
-            flex-direction: column;
-            gap: 1px;
-        }
-
-        .creator-label {
-            font-size: 9.5px;
-            font-weight: 700;
-            color: var(--text3);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            margin-bottom: 6px;
         }
 
         .creator-name {
             font-family: 'Noto Serif', serif;
-            font-size: 16px;
+            font-size: 22px;
             font-weight: 700;
             color: var(--text);
-            line-height: 1.2;
         }
 
         .creator-tagline {
-            font-size: 10.5px;
+            font-size: 12.5px;
             font-weight: 500;
             color: var(--text3);
             font-style: italic;
-            margin-top: 1px;
-        }
-
-        @media (max-width: 768px) {
-            .creator-card {
-                position: relative;
-                right: auto;
-                bottom: auto;
-                margin: 0 auto 20px;
-                max-width: 480px;
-                width: calc(100% - 24px);
-            }
+            text-align: center;
+            line-height: 1.5;
         }
     </style>
 </head>
@@ -1303,6 +1267,7 @@
                 <div class="meta-pill scoreboard-btn" onclick="openScoreboard()" style="cursor:pointer; gap:6px;">
                     <span>🏆</span><span>Papan Skor</span>
                 </div>
+                <div class="meta-pill" style="cursor:pointer" onclick="document.getElementById('creator-modal').classList.add('show')">👤 Profile</div>
                 <div class="meta-pill" style="cursor:pointer" onclick="window._firebaseSignOut()">🚪 Keluar</div>
             </div>
         </div>
@@ -1466,12 +1431,14 @@
         </div>
     </div>
 
-    <div class="creator-card">
-        <img src="Reve.png" alt="Reve Logo" class="creator-logo">
-        <div class="creator-text">
-            <span class="creator-label">Built by</span>
-            <span class="creator-name">Reve</span>
-            <span class="creator-tagline">Crafted with passion & purpose</span>
+    <div class="modal-overlay" id="creator-modal" onclick="if(event.target===this)this.classList.remove('show')">
+        <div class="modal-box" style="padding: 32px 24px;">
+            <div class="creator-modal-content">
+                <img src="Reve.png" alt="Reve Logo" class="creator-logo">
+                <span class="creator-name">Reve</span>
+                <span class="creator-tagline">Crafted with passion & purpose</span>
+            </div>
+            <button class="modal-btn modal-btn-cancel" style="width:100%; margin-top:20px;" onclick="document.getElementById('creator-modal').classList.remove('show')">Tutup</button>
         </div>
     </div>
 
