@@ -16,6 +16,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBLXut5CS5VfaKXCvERMq0Y04RcyurQarc",
@@ -28,9 +29,65 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const messaging = getMessaging(app);
+
+        const VAPID_KEY = 'BCWA47ctWSiRgi2DQ-a-X3dxkLvFcuvjtWKZ_r8evlFH4OhfQacVWXeIA6uobsDPUNJWJ2yjKhVrVvqKDLEfEnU';
 
         window._firebaseAuth = auth;
+        window._firebaseMessaging = messaging;
         let _wasAuthenticated = false;
+
+        async function setupFCM(user) {
+            try {
+                if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
+                const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') return;
+
+                const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+                if (!token) return;
+
+                const idToken = await user.getIdToken();
+                fetch('/api/fcm-token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+                    body: JSON.stringify({ token: token })
+                }).catch(() => {});
+
+                localStorage.setItem('fcmToken', token);
+                updateNotifUI(true);
+            } catch (e) {
+                console.warn('FCM setup error:', e.message);
+            }
+        }
+
+        function updateNotifUI(enabled) {
+            const btn = document.getElementById('notif-btn');
+            if (!btn) return;
+            if (enabled) {
+                btn.innerHTML = '🔔 Notifikasi Aktif';
+                btn.style.opacity = '0.7';
+            } else {
+                btn.innerHTML = '🔕 Aktifkan Notifikasi';
+                btn.style.opacity = '1';
+            }
+        }
+
+        window._requestNotif = async function() {
+            const user = auth.currentUser;
+            if (!user) return;
+            await setupFCM(user);
+        };
+
+        onMessage(messaging, (payload) => {
+            const data = payload.notification || payload.data || {};
+            const title = data.title || 'Checklist Sholat';
+            const body = data.body || 'Waktunya sholat!';
+
+            if (Notification.permission === 'granted') {
+                new Notification(title, { body: body, icon: '/Reve.png', tag: 'sholat-fg' });
+            }
+        });
 
         onAuthStateChanged(auth, (user) => {
             if (!user) {
@@ -54,6 +111,10 @@
 
             if (typeof window._onAuthReady === 'function') {
                 window._onAuthReady();
+            }
+
+            if (Notification.permission === 'granted') {
+                setupFCM(user);
             }
         });
 
@@ -1267,6 +1328,7 @@
                 <div class="meta-pill scoreboard-btn" onclick="openScoreboard()" style="cursor:pointer; gap:6px;">
                     <span>🏆</span><span>Papan Skor</span>
                 </div>
+                <div class="meta-pill" id="notif-btn" style="cursor:pointer" onclick="window._requestNotif()">🔕 Aktifkan Notifikasi</div>
                 <div class="meta-pill" style="cursor:pointer" onclick="document.getElementById('creator-modal').classList.add('show')">👤 Profile</div>
                 <div class="meta-pill" style="cursor:pointer" onclick="window._firebaseSignOut()">🚪 Keluar</div>
             </div>
@@ -2064,6 +2126,10 @@
         fetch('/ping').catch(() => { });
         fetchTolerance().then(() => { fetchPrayerTimes(); });
         updateProgress();
+
+        if ('Notification' in window && Notification.permission === 'granted') {
+            updateNotifUI(true);
+        }
 
         window._onAuthReady = async function () { await verifikasiRekapKemarin(); fetchTodayStatus(); };
 

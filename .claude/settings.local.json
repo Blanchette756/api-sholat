@@ -17,7 +17,8 @@
       "Bash(pip install *)",
       "Bash(gh api *)",
       "Bash(npm i *)",
-      "Bash(vercel *)"
+      "Bash(vercel *)",
+      "Bash(echo \"EXIT:$?\")"
     ]
   },
   "enabledPlugins": {
