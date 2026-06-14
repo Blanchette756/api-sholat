@@ -1235,7 +1235,8 @@
             </div>
             <div class="header-meta" style="margin-top:8px">
                 <div class="meta-pill scoreboard-btn" onclick="openScoreboard()" style="cursor:pointer; gap:6px;">
-                    <span>🏆</span><span>Papan Skor</span></div>
+                    <span>🏆</span><span>Papan Skor</span>
+                </div>
                 <div class="meta-pill" style="cursor:pointer" onclick="window._firebaseSignOut()">🚪 Keluar</div>
             </div>
         </div>
@@ -1331,6 +1332,7 @@
                             <option value="Hukum">Hukum</option>
                         </optgroup>
                         <optgroup label="Fakultas Ilmu Kesehatan">
+                            <option value="Kedokteran">Kedokteran</option>
                             <option value="Keperawatan">Keperawatan</option>
                             <option value="Kebidanan">Kebidanan</option>
                         </optgroup>
@@ -1683,13 +1685,14 @@
             try {
                 const token = await window._getIdToken();
                 if (!token) return;
+                const nama = document.getElementById('nama').value.trim();
                 const npm = document.getElementById('npm').value;
                 const program_studi = document.getElementById('program-studi').value;
 
                 const res = await fetch('/sholat/haid', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ haid: isHaid, npm, program_studi })
+                    body: JSON.stringify({ haid: isHaid, nama: nama, npm: npm, program_studi: program_studi })
                 });
                 const data = await res.json();
                 if (data.status !== 'success') {
@@ -1752,13 +1755,14 @@
             try {
                 const token = await window._getIdToken();
                 if (!token) return;
+                const nama = document.getElementById('nama').value.trim();
                 const npm = document.getElementById('npm').value;
                 const program_studi = document.getElementById('program-studi').value;
 
                 const res = await fetch('/sholat/check', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ prayer: id, checked: newState, jamaah: null, npm, program_studi })
+                    body: JSON.stringify({ prayer: id, checked: newState, jamaah: null, nama: nama, npm: npm, program_studi: program_studi })
                 });
                 const data = await res.json();
                 if (data.status !== 'success') {
@@ -1784,13 +1788,14 @@
             try {
                 const token = await window._getIdToken();
                 if (!token) return;
+                const nama = document.getElementById('nama').value.trim();
                 const npm = document.getElementById('npm').value;
                 const program_studi = document.getElementById('program-studi').value;
 
                 fetch('/sholat/check', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ prayer: prayerId, checked: true, jamaah: type, npm, program_studi })
+                    body: JSON.stringify({ prayer: prayerId, checked: true, jamaah: type, nama: nama, npm: npm, program_studi: program_studi })
                 });
             } catch (e) { }
         }

@@ -230,13 +230,16 @@ def check_prayer():
         jamaah = data.get('jamaah', None)
         npm = data.get('npm', '')
         program_studi = data.get('program_studi', '')
+        input_nama = data.get('nama', '').strip() # Menangkap nama dari ketikan manual
 
         if prayer not in PRAYER_TIMES_APPROX:
             return jsonify({"status": "error", "message": "Pemilihan sholat tidak valid"}), 400
 
         uid = user.get('uid', '')
         email = user.get('email', '')
-        nama = user.get('name', email)
+        
+        # Jika ada input nama manual, gunakan itu. Jika kosong, baru ambil dari Google
+        nama = input_nama if input_nama else user.get('name', email)
         tanggal = get_wita_date_str()
 
         tolerance = db_manager.get_settings().get('tolerance_minutes', 60)
@@ -250,6 +253,7 @@ def check_prayer():
     except Exception as e:
         logger.exception("Error pada /sholat/check: %s", e)
         return jsonify({"status": "error", "message": "Terjadi kendala pada peladen (server)"}), 500
+
 
 @app.route('/sholat/haid', methods=['POST'])
 @_rate_limit("10 per minute")
@@ -266,9 +270,13 @@ def set_haid():
         is_haid = bool(data.get('haid', False))
         npm = data.get('npm', '')
         program_studi = data.get('program_studi', '')
+        input_nama = data.get('nama', '').strip() # Menangkap nama dari ketikan manual
+        
         uid = user.get('uid', '')
         email = user.get('email', '')
-        nama = user.get('name', email)
+        
+        # Gunakan nama inputan manual atau fallback ke Google
+        nama = input_nama if input_nama else user.get('name', email)
         tanggal = get_wita_date_str()
 
         success, msg = db_manager.set_haid(uid, email, nama, npm, program_studi, tanggal, is_haid)
