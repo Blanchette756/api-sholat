@@ -1527,6 +1527,35 @@
             localStorage.setItem('sholatProdi', this.value);
         });
 
+        // ==========================================
+        // FUNGSI LOCK & UNLOCK UI JAMAAH (BARU)
+        // ==========================================
+        function lockJamaah(prayerId, type) {
+            const optsDiv = document.getElementById('opts-' + prayerId);
+            document.querySelectorAll('.btn-j-' + prayerId).forEach(b => b.style.display = 'none');
+
+            let statusEl = document.getElementById('status-j-' + prayerId);
+            if (!statusEl) {
+                statusEl = document.createElement('div');
+                statusEl.id = 'status-j-' + prayerId;
+                statusEl.style.cssText = "flex: 1; text-align:center; padding:10px 12px; background:var(--teal-light); border:1.5px solid var(--teal); border-radius:8px; color:var(--teal); font-size:11.5px; font-weight:800; animation: fadeUp 0.3s ease;";
+                optsDiv.appendChild(statusEl);
+            }
+            statusEl.style.display = 'block';
+            let iconText = type === 'berjamaah' ? '👥 Berjamaah' : '👤 Sendiri';
+            statusEl.innerHTML = `✅ Sudah melakukan checklist<br><span style="font-size:10.5px; font-weight:600; color:var(--text2); margin-top:3px; display:block;">Pilihan: ${iconText}</span>`;
+        }
+
+        function unlockJamaah(prayerId) {
+            document.querySelectorAll('.btn-j-' + prayerId).forEach(b => {
+                b.style.display = 'block';
+                b.classList.remove('active');
+            });
+            let statusEl = document.getElementById('status-j-' + prayerId);
+            if (statusEl) statusEl.style.display = 'none';
+        }
+        // ==========================================
+
         async function fetchTolerance() {
             try {
                 const res = await fetch('/api/settings');
@@ -1683,6 +1712,7 @@
                     item.classList.remove('checked');
                     opts.style.display = 'none';
                     currentJamaah[p] = null;
+                    unlockJamaah(p); // Reset tombol jamaah
                 } else {
                     item.style.opacity = '1';
                     item.style.pointerEvents = 'auto';
@@ -1711,10 +1741,11 @@
 
             if (newState) {
                 opts.style.display = 'flex';
+                unlockJamaah(id); // Pastikan tombol selalu muncul ketika baru di-ceklis
             } else {
                 opts.style.display = 'none';
                 currentJamaah[id] = null;
-                document.querySelectorAll('.btn-j-' + id).forEach(b => b.classList.remove('active'));
+                unlockJamaah(id);
             }
             updateProgress();
 
@@ -1733,7 +1764,12 @@
                 if (data.status !== 'success') {
                     // revert UI
                     cb.checked = !newState; item.classList.toggle('checked', !newState);
-                    if (newState) opts.style.display = 'none';
+                    if (newState) {
+                        opts.style.display = 'none';
+                        unlockJamaah(id);
+                    } else {
+                        opts.style.display = 'flex';
+                    }
                     updateProgress(); showMsg(data.message || 'Gagal menyimpan', 'error');
                     setTimeout(() => document.getElementById('pesan-server').classList.add('hidden'), 3000);
                 }
@@ -1742,8 +1778,7 @@
 
         async function setJamaah(prayerId, type) {
             currentJamaah[prayerId] = type;
-            document.querySelectorAll('.btn-j-' + prayerId).forEach(b => b.classList.remove('active'));
-            document.getElementById(`btn-j-${prayerId}-${type}`).classList.add('active');
+            lockJamaah(prayerId, type); // Kunci UI dan sembunyikan tombol
 
             // Save immediately
             try {
@@ -1817,12 +1852,14 @@
                         opts.style.display = 'flex';
                         if (jamaah[p]) {
                             currentJamaah[p] = jamaah[p];
-                            document.getElementById(`btn-j-${p}-${jamaah[p]}`).classList.add('active');
+                            lockJamaah(p, jamaah[p]); // Terapkan status lock langsung dari server
+                        } else {
+                            unlockJamaah(p);
                         }
                     } else {
                         cb.checked = false; item.classList.remove('checked');
                         opts.style.display = 'none'; currentJamaah[p] = null;
-                        document.querySelectorAll('.btn-j-' + p).forEach(b => b.classList.remove('active'));
+                        unlockJamaah(p);
                     }
                 });
                 updateProgress();
