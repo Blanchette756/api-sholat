@@ -136,7 +136,7 @@ else:
 
 db_manager = Database()
 
-ALLOWED_STATIC = {'index.html', 'login.html', 'style.css', 'admin-login.html'}
+ALLOWED_STATIC = {'index.html', 'login.html', 'style.css', 'admin-login.html', 'Reve.png'}
 
 
 @app.after_request
