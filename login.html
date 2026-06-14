@@ -315,11 +315,11 @@
 
             <span class="header-icon">🕌</span>
             <h1>Checklist Sholat</h1>
-            <p>Masuk untuk mulai mencatat ibadah sholatmu hari ini</p>
+            <p>Masuk untuk mulai mencatat ibadah sholat harian Anda</p>
         </div>
 
         <div class="login-card">
-            <p class="login-label">Masuk ke Akunmu</p>
+            <p class="login-label">Masuk ke Akun Anda</p>
 
             <button class="btn-google" id="btn-google">
                 <svg width="18" height="18" viewBox="0 0 48 48">
@@ -338,7 +338,8 @@
             <div class="divider"><span>info</span></div>
 
             <p class="login-info">
-                Data sholatmu tersimpan aman di server. Gunakan akun Google untuk masuk dan mulai mencatat.
+                Data sholat Anda tersimpan secara aman di server. Gunakan akun Google untuk masuk dan memulai
+                pencatatan.
             </p>
 
             <div class="login-status" id="login-status"></div>
@@ -376,19 +377,19 @@
         });
 
         document.getElementById('btn-google').addEventListener('click', () => {
-            statusEl.textContent = '⏳ Menghubungkan Langsung Ke Google...';
+            statusEl.textContent = '⏳ Menghubungkan langsung ke Google...';
             statusEl.className = 'login-status loading';
 
             signInWithPopup(auth, provider)
                 .then(() => {
-                    statusEl.textContent = '✅ Berhasil! Mengalihkan Ke Website...';
+                    statusEl.textContent = '✅ Berhasil! Mengalihkan ke situs web...';
                     statusEl.className = 'login-status loading';
                 })
                 .catch((error) => {
                     if (error.code === 'auth/popup-closed-by-user') {
-                        statusEl.textContent = '⚠️ Popup ditutup. Silakan coba lagi.';
+                        statusEl.textContent = '⚠️ Proses masuk ditutup oleh pengguna. Silakan coba kembali.';
                     } else {
-                        statusEl.textContent = '❌ Gagal masuk. Coba lagi Kapan Lapan.';
+                        statusEl.textContent = '❌ Gagal masuk. Silakan coba beberapa saat lagi.';
                     }
                     statusEl.className = 'login-status error';
                 });

@@ -106,7 +106,7 @@ function renderSchedule() {
             <span class="countdown-time" id="countdown-time">--:--:--</span>
         </div>`;
     } else {
-        html += `<div class="countdown-bar"><span class="countdown-label">Semua sholat hari ini selesai 🌟</span></div>`;
+        html += `<div class="countdown-bar"><span class="countdown-label">Ibadah sholat hari ini telah terselesaikan 🌟</span></div>`;
     }
     container.innerHTML = html;
 
@@ -153,7 +153,7 @@ function updateCountdown() {
     const s = diff % 60;
     el.textContent = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
 
-    if (s === 0 && m === 0) renderSchedule(); // refresh saat ganti sholat
+    if (s === 0 && m === 0) renderSchedule(); // refresh saat transisi waktu sholat
 }
 
 // ── Update teks waktu di checklist ──
@@ -186,14 +186,13 @@ function updateProgress() {
     if (fillEl) fillEl.style.width = (checked / 5 * 100) + '%';
 }
 
-// ── Simpan ke localStorage ──
+// ── Penanganan Penyimpanan Lokal (localStorage) ──
 function saveChecklist() {
     const data = {};
     prayers.forEach(p => data[p] = document.getElementById(p).checked);
     try { localStorage.setItem('sholatChecklist', JSON.stringify(data)); } catch (e) { }
 }
 
-// ── Load dari localStorage ──
 function loadChecklist() {
     try {
         const saved = JSON.parse(localStorage.getItem('sholatChecklist') || 'null');
@@ -206,32 +205,48 @@ function loadChecklist() {
             });
         }
         const nama = localStorage.getItem('sholatNama') || '';
+        const npm = localStorage.getItem('sholatNpm') || '';
+        const prodi = localStorage.getItem('sholatProdi') || '';
+
         const namaEl = document.getElementById('nama');
+        const npmEl = document.getElementById('npm');
+        const prodiEl = document.getElementById('program-studi');
+
         if (nama && namaEl) namaEl.value = nama;
+        if (npm && npmEl) npmEl.value = npm;
+        if (prodi && prodiEl) prodiEl.value = prodi;
     } catch (e) { }
     updateProgress();
 }
 
-// ── Form Submit ──
+// ── Pengajuan Form ──
 function handleSubmit(e) {
     e.preventDefault();
     const nama = document.getElementById('nama').value.trim();
+    const npm = document.getElementById('npm').value.trim();
+    const program_studi = document.getElementById('program-studi').value;
 
-    if (!nama) { showMsg('❌ Nama harus diisi dulu ya!', 'error'); return; }
-    if (nama.length < 3) { showMsg('❌ Nama minimal 3 karakter!', 'error'); return; }
+    if (!nama) { showMsg('❌ Keterangan Nama Mahasiswa diwajibkan untuk diisi', 'error'); return; }
+    if (nama.length < 3) { showMsg('❌ Mohon masukkan validasi nama minimum 3 karakter', 'error'); return; }
+    if (!npm) { showMsg('❌ Keterangan Nomor Pokok Mahasiswa (NPM) diwajibkan', 'error'); return; }
+    if (!program_studi) { showMsg('❌ Mohon tentukan Program Studi Anda pada seleksi dropdown', 'error'); return; }
 
     const status = {};
     prayers.forEach(p => status[p] = document.getElementById(p).checked);
     const total = Object.values(status).filter(Boolean).length;
-    const dataKirim = { nama, ...status, totalSholat: total };
+    const dataKirim = { nama, npm, program_studi, ...status, totalSholat: total };
 
-    try { localStorage.setItem('sholatNama', nama); } catch (e) { }
+    try {
+        localStorage.setItem('sholatNama', nama);
+        localStorage.setItem('sholatNpm', npm);
+        localStorage.setItem('sholatProdi', program_studi);
+    } catch (e) { }
 
     const btn = document.getElementById('btn-submit');
     const origHTML = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '⏳ Mengirim...';
-    showMsg('⏳ Menghubungi server...', '');
+    btn.innerHTML = '⏳ Memproses laporan...';
+    showMsg('⏳ Menghubungi sistem peladen...', '');
 
     fetch('https://reve.pythonanywhere.com/sholat', {
         method: 'POST',
@@ -241,32 +256,4 @@ function handleSubmit(e) {
         .then(r => r.json())
         .then(data => {
             if (data.status === 'success' || data.status === 'sukses') {
-                showMsg('✅ Laporan diterima! ' + (data.message || '') + ` (${total}/5 sholat)`, 'success');
-                document.querySelectorAll('#sholatForm input[type=checkbox]').forEach(cb => cb.checked = false);
-                prayers.forEach(p => document.getElementById('item-' + p).classList.remove('checked'));
-                try { localStorage.removeItem('sholatChecklist'); } catch (e) { }
-                updateProgress();
-                setTimeout(() => document.getElementById('pesan-server').classList.add('hidden'), 5000);
-            } else {
-                showMsg('❌ Gagal: ' + (data.message || 'Server menolak data'), 'error');
-            }
-            resetBtn();
-        })
-        .catch(() => {
-            showMsg('❌ Koneksi gagal! Cek koneksi internetmu.', 'error');
-            resetBtn();
-        });
-
-    function resetBtn() { btn.disabled = false; btn.innerHTML = origHTML; }
-}
-
-function showMsg(text, type) {
-    const d = document.getElementById('pesan-server');
-    d.textContent = text;
-    d.className = type || '';
-    d.classList.remove('hidden');
-}
-
-// ── Init ──
-loadChecklist();
-fetchPrayerTimes();
+                showMsg('✅ Rekam jejak sholat berhasil diterima. ' + (data.message || '') + ` (${total}/5)`,
